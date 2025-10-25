@@ -1,6 +1,3 @@
-﻿  main.cpp
-  PhysicsObject.cpp
-D:\VisualStudio\2022\Community\VC\Tools\MSVC\14.44.35207\include\cfloat(10,10): error C1083: Cannot open include file: 'float.h': No such file or directory
-  (compiling source file 'PhysicsObject.cpp')
-  
-  Generating Code...
+﻿  InstanceService.cpp
+InstanceService.obj : error LNK2001: unresolved external symbol "private: static class std::mutex InstanceService::initLock" (?initLock@InstanceService@@0Vmutex@std@@A)
+C:\Users\isaac\OneDrive\Desktop\Piston-Slap\Piston-Slap\x64\Debug\Piston-Slap.exe : fatal error LNK1120: 1 unresolved externals
