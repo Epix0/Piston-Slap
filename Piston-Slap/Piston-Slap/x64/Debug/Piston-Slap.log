@@ -1,3 +1,0 @@
-﻿  InstanceService.cpp
-InstanceService.obj : error LNK2001: unresolved external symbol "private: static class std::mutex InstanceService::initLock" (?initLock@InstanceService@@0Vmutex@std@@A)
-C:\Users\isaac\OneDrive\Desktop\Piston-Slap\Piston-Slap\x64\Debug\Piston-Slap.exe : fatal error LNK1120: 1 unresolved externals
