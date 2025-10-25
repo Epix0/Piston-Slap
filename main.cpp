@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 // personal
 #include "InstanceService.h"
@@ -17,6 +18,10 @@ static void error_callback(int error, const char* description)
 }
 
 int main() {
+	glm::vec3 myVec(3.0f);
+
+	std::cout << myVec.x;
+
 	GLFWwindow* window;
 	int width = 600;
 	int height = 600;

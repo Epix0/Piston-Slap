@@ -113,7 +113,7 @@
       <AdditionalDependencies>$(ProjectDir)include\glfw3dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(ProjectDir)\dependencies\*.dll $(OutputPath)</Command>
+      <Command>xcopy /y $(ProjectDir)\dependencies\* $(OutputPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,7 +135,7 @@
       <AdditionalDependencies>$(ProjectDir)include\glfw3dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(ProjectDir)\dependencies\*.dll $(OutputPath)</Command>
+      <Command>xcopy /y $(ProjectDir)\dependencies\* $(OutputPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -143,13 +143,17 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="other-src\glad.c" />
     <ClCompile Include="PhysicsObject.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InstanceService.h" />
     <ClInclude Include="PhysicsObject.h" />
+    <ClInclude Include="ShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\glfw3.dll" />
+    <None Include="dependencies\shader.frag" />
+    <None Include="dependencies\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
