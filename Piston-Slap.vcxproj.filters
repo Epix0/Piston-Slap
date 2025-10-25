@@ -24,6 +24,9 @@
     <ClCompile Include="InstanceService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="other-src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PhysicsObject.h">
@@ -32,5 +35,8 @@
     <ClInclude Include="InstanceService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dependencies\glfw3.dll" />
   </ItemGroup>
 </Project>
