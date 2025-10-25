@@ -3,9 +3,7 @@
 #include "InstanceService.h"
 #include "PhysicsObject.h"
 
-
 int main() {
-	
 
 	return 0;
 }
