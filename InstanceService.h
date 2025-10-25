@@ -6,10 +6,11 @@
 class InstanceService
 {
 public:
-	std::unique_ptr<InstanceService>& get();
+	using InterfacePtrRef = std::shared_ptr<InstanceService>;
+	static InterfacePtrRef get();
+
+	//~InstanceService();
 private:
-	std::mutex initLock;
 	InstanceService();
-	std::unique_ptr<InstanceService> singletonPtr;
 };
 

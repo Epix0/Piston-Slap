@@ -1,10 +1,11 @@
 #include <iostream>
 #include <memory>
+#include "InstanceService.h"
 #include "PhysicsObject.h"
-int main() {
-	std::unique_ptr<int> four = std::make_unique<int>(4);
 
-	std::cout << *four << "\n";
+
+int main() {
+	
 
 	return 0;
 }

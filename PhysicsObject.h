@@ -4,9 +4,8 @@
 class PhysicsObject
 {
 public:
-	PhysicsObject(const PhysicsObject&) = delete;
-	PhysicsObject() = delete;
+	virtual void setPos() = 0;
+	virtual void* getPos() = 0;
 
-	~PhysicsObject();
-
+	~PhysicsObject() = delete;
 };
