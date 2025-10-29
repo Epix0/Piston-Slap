@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 // personal
+#include "ShaderProgram.h"
 #include "InstanceService.h"
 #include "PhysicsObject.h"
 #include "CustomIModelImporter.h"
@@ -38,6 +39,8 @@ int main() {
 
 	// This stuff will need wrapped soon!!!
 	
+	ShaderProgram shader("dependencies/shader.vert", "dependencies/shader.frag");
+	shader.use();
 	//VBO
 	unsigned int VBO = 0;
 	glGenBuffers(1, &VBO);
@@ -47,12 +50,11 @@ int main() {
 	glGenVertexArrays(1, &VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(pImporter->vertices), pImporter->vertices, GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(pImporter->vertices), pImporter->vertices, GL_STATIC_DRAW);
 	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glEnableVertexAttribArray(0);
 
-	
 	//
 
 	if (!window)
@@ -73,6 +75,8 @@ int main() {
 		glClearColor(.2f, 0, .5f, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		shader.use();
+		glDrawArrays(GL_TRIANGLES, 0, 400);
 		
 
 		glfwSwapBuffers(window);

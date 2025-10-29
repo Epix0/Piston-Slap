@@ -9,9 +9,15 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
         std::cout << "WARNING: numOfVertices is greater than init value of CustomModelImporter member\n";
     }
 
-    for (unsigned int i = 0; i < this->numOfVertices; i++) {
+    int needle = 0;
+    std::cout << this->numOfVertices << "\n";
+    for (int i = 0; i < 1966; i++) {
+        std::cout << i << "\n";
         auto p = scene->mMeshes[0]->mVertices[i];
-        this->vertices[i] = glm::vec3(p.x, p.y, p.z);
+        this->vertices[needle] = p.x;
+        this->vertices[needle + 1] = p.y;
+        this->vertices[needle + 2] = p.z;
+        needle += 3;
     }
 }
 

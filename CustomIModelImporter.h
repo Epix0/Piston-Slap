@@ -8,7 +8,7 @@
 class CustomModelImporter {
 public:
 	CustomModelImporter() = default;
-	glm::vec3 vertices[3000];
+	float vertices[3000];
 
 	bool ImportModelFile(const std::string& pFile);
 	unsigned int numOfVertices;
