@@ -9,9 +9,8 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
         std::cout << "WARNING: numOfVertices is greater than init value of CustomModelImporter member\n";
     }
 
-    int needle = 0;
-    std::cout << this->numOfVertices << "\n";
-    for (int i = 0; i < 1966; i++) {
+    unsigned int needle = 0;
+    for (unsigned int i = 0; i < this->numOfVertices; i++) {
         std::cout << i << "\n";
         auto p = scene->mMeshes[0]->mVertices[i];
         this->vertices[needle] = p.x;
@@ -19,6 +18,7 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
         this->vertices[needle + 2] = p.z;
         needle += 3;
     }
+    std::cout << "All vertices cached!\n";
 }
 
 bool CustomModelImporter::ImportModelFile(const std::string& pFile) {

@@ -8,7 +8,7 @@
 class CustomModelImporter {
 public:
 	CustomModelImporter() = default;
-	float vertices[3000];
+	float vertices[6000];
 
 	bool ImportModelFile(const std::string& pFile);
 	unsigned int numOfVertices;
