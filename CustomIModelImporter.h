@@ -12,6 +12,7 @@ public:
 
 	bool ImportModelFile(const std::string& pFile);
 	unsigned int numOfVertices;
+	unsigned int numOfFaces;
 private:
 	aiMesh* importedMeshData;
 	void ProcessScene(const aiScene* scene);

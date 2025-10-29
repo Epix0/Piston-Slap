@@ -6,7 +6,10 @@
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // personal
 #include "ShaderProgram.h"
@@ -35,7 +38,14 @@ int main() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "Butt Fucked Monkey", NULL, NULL);
+	glfwMakeContextCurrent(window);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "ERR: Glad failed to init?\n";
+		return 43;
+	}
 
 	// This stuff will need wrapped soon!!!
 	
@@ -50,9 +60,9 @@ int main() {
 	glGenVertexArrays(1, &VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(pImporter->vertices), pImporter->vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pImporter->vertices), pImporter->vertices, GL_STATIC_DRAW);
 	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	//
@@ -67,6 +77,10 @@ int main() {
 	gladLoadGL();
 	glfwSwapInterval(1);
 
+	glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::rotate(trans, glm::radians(50.0f), glm::vec3(1.0, 0.0, 0.0));
+	shader.setMat4("transform", trans);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwGetFramebufferSize(window, &width, &height);
@@ -76,7 +90,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader.use();
-		glDrawArrays(GL_TRIANGLES, 0, 400);
+		glDrawArrays(GL_TRIANGLES, 0, pImporter->numOfVertices);
 		
 
 		glfwSwapBuffers(window);
