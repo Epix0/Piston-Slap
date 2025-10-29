@@ -139,14 +139,17 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CustomIModelImporter.cpp" />
     <ClCompile Include="InstanceService.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="other-src\glad.c" />
     <ClCompile Include="PhysicsObject.cpp" />
-    <ClCompile Include="ShaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="InstanceService.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="PhysicsObject.h" />
     <ClInclude Include="ShaderProgram.h" />
   </ItemGroup>

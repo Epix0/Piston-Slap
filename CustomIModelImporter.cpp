@@ -1,10 +1,21 @@
 #include "CustomIModelImporter.h"
+#include <string>
 
-void CustomIModelImporter::ProcessScene(const aiScene* scene) {
+void CustomModelImporter::ProcessScene(const aiScene* scene) {
+    //std::cout << scene->mMeshes[0]->mvert << "\n";
+    this->numOfVertices = scene->mMeshes[0]->mNumVertices;
 
+    if (this->numOfVertices > 3000) {
+        std::cout << "WARNING: numOfVertices is greater than init value of CustomModelImporter member\n";
+    }
+
+    for (unsigned int i = 0; i < this->numOfVertices; i++) {
+        auto p = scene->mMeshes[0]->mVertices[i];
+        this->vertices[i] = glm::vec3(p.x, p.y, p.z);
+    }
 }
 
-bool CustomIModelImporter::ImportModelFile(const std::string& pFile) {
+bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
     // Create an instance of the Importer class
     Assimp::Importer importer;
 
