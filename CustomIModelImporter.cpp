@@ -3,10 +3,16 @@
 
 void CustomModelImporter::ProcessScene(const aiScene* scene) {
     //std::cout << scene->mMeshes[0]->mvert << "\n";
-    this->numOfVertices = scene->mMeshes[0]->mNumVertices;
-    this->numOfFaces = scene->mMeshes[0]->mNumFaces;
+    aiMesh* pMainMesh = scene->mMeshes[0];
+    this->numOfVertices = pMainMesh->mNumVertices;
+    this->numOfFaces = pMainMesh->mNumFaces;
 
-    std::cout << scene->mMeshes[0]->mFaces[0].mIndices[0];
+    std::cout << "Copying faces list...\n";
+    for (unsigned int i = 0; i < pMainMesh->mNumFaces; i++) {
+        for (unsigned int j = 0; j < 3; j++) {
+            this->elementList.push_back(pMainMesh->mFaces[i].mIndices[j]);
+        }
+    }
 
     if (this->numOfVertices > 6000) {
         std::cout << "WARNING: numOfVertices is greater than init value of CustomModelImporter member\n";
