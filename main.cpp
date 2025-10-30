@@ -85,6 +85,10 @@ int main() {
 	gladLoadGL();
 	glfwSwapInterval(1);
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW); // It's set in stone now: elements should be intended to render counter clockwise
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glm::mat4 trans = glm::mat4(1.0f);

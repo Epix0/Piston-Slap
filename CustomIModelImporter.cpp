@@ -7,23 +7,19 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
     this->numOfVertices = pMainMesh->mNumVertices;
     this->numOfFaces = pMainMesh->mNumFaces;
 
-    std::cout << "Copying faces list...\n";
+    this->elementList.reserve(pMainMesh->mNumFaces);
+    this->vertices.reserve(pMainMesh->mNumVertices);
+
     for (unsigned int i = 0; i < pMainMesh->mNumFaces; i++) {
         for (unsigned int j = 0; j < 3; j++) {
             this->elementList.push_back(pMainMesh->mFaces[i].mIndices[j]);
         }
     }
-
-    if (this->numOfVertices > 6000) {
-        std::cout << "WARNING: numOfVertices is greater than init value of CustomModelImporter member\n";
-    }
-
-    this->vertices.reserve(pMainMesh->mNumVertices);
+    
     for (unsigned int i = 0; i < this->numOfVertices; i++) {
         auto p = pMainMesh->mVertices[i];
         this->vertices.insert(this->vertices.end(), { p.x, p.y, p.z });
     }
-    std::cout << "All vertices cached!\n";
 }
 
 bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
