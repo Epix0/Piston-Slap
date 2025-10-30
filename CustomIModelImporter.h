@@ -8,14 +8,13 @@
 
 class CustomModelImporter {
 public:
-	CustomModelImporter(): vertices{ 0 }, numOfVertices(0), numOfFaces(0) {};
-	float vertices[6000];
-
-	bool ImportModelFile(const std::string& pFile);
+	CustomModelImporter(): numOfVertices(0), numOfFaces(0) {};
 	unsigned int numOfVertices;
 	unsigned int numOfFaces;
+
+	bool ImportModelFile(const std::string& pFile);
+	std::vector<float> vertices;
 	std::vector<unsigned int> elementList;
 private:
-	aiMesh* importedMeshData;
 	void ProcessScene(const aiScene* scene);
 };
