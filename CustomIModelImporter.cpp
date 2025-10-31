@@ -10,6 +10,7 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
     this->elementList.reserve(pMainMesh->mNumFaces);
     this->vertices.reserve(pMainMesh->mNumVertices);
     this->normals.reserve(pMainMesh->mNumVertices);
+    this->normals.reserve((pMainMesh->mNumVertices * (static_cast<int64_t>(2)))); //stfu linter
 
     for (unsigned int i = 0; i < pMainMesh->mNumFaces; i++) {
         for (unsigned int j = 0; j < 3; j++) {
@@ -17,15 +18,21 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
         }
     }
     
+    // Vertices are stored as such:
+    // { A_posX, A_posY, A_posZ, A_normalX, A_normalY, A_normalZ
+    // B_posX, B_posY, B_posZ, B_normalX, B_normalY, B_normalZ ... }
+
     // Anything bearing the same range as mNumVertices...
     for (unsigned int i = 0; i < this->numOfVertices; i++) {
         // handling vertices
-        auto p = pMainMesh->mVertices[i];
-        this->vertices.insert(this->vertices.end(), { p.x, p.y, p.z });
+        auto pVertex = pMainMesh->mVertices[i];
+        this->vertices.insert(this->vertices.end(), { pVertex.x, pVertex.y, pVertex.z });
 
         // handling normals
-        auto p = pMainMesh->mNormals[i];
-        this->normals.insert(this->normals.end(), { p.x, p.y, p.z });
+        auto pNormal = pMainMesh->mNormals[i];
+        this->normals.insert(this->normals.end(), { pNormal.x, pNormal.y, pNormal.z });
+
+        this->sortedBuffer.insert(this->sortedBuffer.end(), { pVertex.x, pVertex.y, pVertex.z, pNormal.x, pNormal.y, pNormal.z });
     }
 }
 

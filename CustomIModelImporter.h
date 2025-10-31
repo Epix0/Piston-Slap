@@ -13,6 +13,7 @@ public:
 	unsigned int numOfFaces;
 
 	bool ImportModelFile(const std::string& pFile);
+	std::vector<float> sortedBuffer;
 	std::vector<float> normals;
 	std::vector<float> vertices;
 	std::vector<unsigned int> elementList;
