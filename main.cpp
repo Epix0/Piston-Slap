@@ -38,7 +38,7 @@ int main() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	window = glfwCreateWindow(640, 480, "Butt Fucked Monkey", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "Butt Monkey", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -99,7 +99,7 @@ int main() {
 		glClearColor(.2f, 0, .5f, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);*/
 		shader.use();
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, pImporter->numOfVertices, GL_UNSIGNED_INT, 0);		

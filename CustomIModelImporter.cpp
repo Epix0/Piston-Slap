@@ -9,6 +9,7 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
 
     this->elementList.reserve(pMainMesh->mNumFaces);
     this->vertices.reserve(pMainMesh->mNumVertices);
+    this->normals.reserve(pMainMesh->mNumVertices);
 
     for (unsigned int i = 0; i < pMainMesh->mNumFaces; i++) {
         for (unsigned int j = 0; j < 3; j++) {
@@ -16,9 +17,15 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
         }
     }
     
+    // Anything bearing the same range as mNumVertices...
     for (unsigned int i = 0; i < this->numOfVertices; i++) {
+        // handling vertices
         auto p = pMainMesh->mVertices[i];
         this->vertices.insert(this->vertices.end(), { p.x, p.y, p.z });
+
+        // handling normals
+        auto p = pMainMesh->mNormals[i];
+        this->normals.insert(this->normals.end(), { p.x, p.y, p.z });
     }
 }
 
