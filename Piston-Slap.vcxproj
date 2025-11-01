@@ -144,15 +144,17 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="other-src\glad.c" />
-    <ClCompile Include="PhysicsObject.cpp" />
+    <ClCompile Include="RenderedObject.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="WorldInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="InstanceService.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="PhysicsObject.h" />
+    <ClInclude Include="RenderedObject.h" />
     <ClInclude Include="ShaderProgram.h" />
+    <ClInclude Include="WorldInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\glfw3.dll" />

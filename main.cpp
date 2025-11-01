@@ -12,9 +12,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // personal
+#include "WorldInstance.h"
 #include "ShaderProgram.h"
-#include "InstanceService.h"
-#include "PhysicsObject.h"
 #include "CustomIModelImporter.h"
 
 static void error_callback(int error, const char* description)
@@ -23,6 +22,9 @@ static void error_callback(int error, const char* description)
 }
 
 int main() {
+	WorldInstance inst;
+
+
 	auto upImporter = std::make_unique<CustomModelImporter>();
 	auto pImporter = upImporter.get();
 	pImporter->ImportModelFile("mymodel.fbx");
@@ -93,10 +95,11 @@ int main() {
 
 	while (!glfwWindowShouldClose(window))
 	{
+		
 		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(0, 1.5f, -1.8f));
 		trans = glm::rotate(trans, glm::radians(290.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		shader.setMat4("transform", trans);
+
 
 		glfwGetFramebufferSize(window, &width, &height);
 
