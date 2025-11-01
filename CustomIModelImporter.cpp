@@ -4,13 +4,16 @@
 void CustomModelImporter::ProcessScene(const aiScene* scene) {
     //std::cout << scene->mMeshes[0]->mvert << "\n";
     aiMesh* pMainMesh = scene->mMeshes[0];
-    this->numOfVertices = pMainMesh->mNumVertices;
-    this->numOfFaces = pMainMesh->mNumFaces;
-
+    
+    // Alloc area
     this->elementList.reserve(pMainMesh->mNumFaces);
     this->vertices.reserve(pMainMesh->mNumVertices);
     this->normals.reserve(pMainMesh->mNumVertices);
-    this->normals.reserve((pMainMesh->mNumVertices * (static_cast<int64_t>(2)))); //stfu linter
+    this->sortedBuffer.reserve(pMainMesh->mNumVertices * static_cast<int64_t>(2)); //stfu linter
+
+    // Quick assignment area
+    this->numOfVertices = pMainMesh->mNumVertices;
+    this->sizeSortedBuffer = sizeof(float) * this->sortedBuffer.capacity();
 
     for (unsigned int i = 0; i < pMainMesh->mNumFaces; i++) {
         for (unsigned int j = 0; j < 3; j++) {

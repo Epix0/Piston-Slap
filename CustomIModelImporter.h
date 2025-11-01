@@ -8,9 +8,9 @@
 
 class CustomModelImporter {
 public:
-	CustomModelImporter(): numOfVertices(0), numOfFaces(0) {};
+	CustomModelImporter(): numOfVertices(0), sizeSortedBuffer(0) {};
 	unsigned int numOfVertices;
-	unsigned int numOfFaces;
+	size_t sizeSortedBuffer;
 
 	bool ImportModelFile(const std::string& pFile);
 	std::vector<float> sortedBuffer;
