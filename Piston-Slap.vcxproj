@@ -144,7 +144,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="other-src\glad.c" />
-    <ClCompile Include="RenderedObject.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="WorldInstance.cpp" />
   </ItemGroup>
@@ -152,7 +151,6 @@
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="InstanceService.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="RenderedObject.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="WorldInstance.h" />
   </ItemGroup>

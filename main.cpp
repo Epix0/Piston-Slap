@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // personal
+#include "Mesh.h"
 #include "WorldInstance.h"
 #include "ShaderProgram.h"
 #include "CustomIModelImporter.h"
@@ -22,9 +23,6 @@ static void error_callback(int error, const char* description)
 }
 
 int main() {
-	WorldInstance inst;
-
-
 	auto upImporter = std::make_unique<CustomModelImporter>();
 	auto pImporter = upImporter.get();
 	pImporter->ImportModelFile("mymodel.fbx");
