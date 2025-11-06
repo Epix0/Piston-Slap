@@ -108,7 +108,7 @@ int main() {
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader.use();
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, pImporter->numOfVertices, GL_UNSIGNED_INT, 0);		
+		glDrawElements(GL_TRIANGLES, pImporter->elementList.size(), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
