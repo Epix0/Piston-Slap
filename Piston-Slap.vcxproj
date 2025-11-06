@@ -142,7 +142,6 @@
     <ClCompile Include="CustomIModelImporter.cpp" />
     <ClCompile Include="InstanceService.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="other-src\glad.c" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="WorldInstance.cpp" />
