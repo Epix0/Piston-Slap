@@ -23,8 +23,7 @@ static void error_callback(int error, const char* description)
 }
 
 int main() {
-	auto upImporter = std::make_unique<CustomModelImporter>();
-	auto pImporter = upImporter.get();
+	auto pImporter = std::make_unique<CustomModelImporter>();
 	pImporter->ImportModelFile("mymodel.fbx");
 
 	GLFWwindow* window;
