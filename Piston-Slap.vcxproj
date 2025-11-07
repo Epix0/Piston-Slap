@@ -150,6 +150,7 @@
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="InstanceService.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="WorldInstance.h" />
   </ItemGroup>

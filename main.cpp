@@ -17,6 +17,8 @@
 #include "ShaderProgram.h"
 #include "CustomIModelImporter.h"
 
+#include <regex>
+
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
@@ -25,7 +27,7 @@ static void error_callback(int error, const char* description)
 int main() {
 	auto upImporter = std::make_unique<CustomModelImporter>();
 	auto pImporter = upImporter.get();
-	pImporter->ImportModelFile("mymodel.fbx");
+	pImporter->ImportModelFile("crow_rig.glb");
 
 
 	GLFWwindow* window;
@@ -63,18 +65,8 @@ int main() {
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	std::unique_ptr<Mesh> pMesh = pImporter->getDecodedMesh();
 
-	std::vector<float> sortedBuffer;
-	sortedBuffer.reserve(pMesh->vertices.size() * 2);
-
-	for (unsigned int i = 0; i < pMesh->vertices.size(); ++i) {
-		auto& vertex = pMesh->vertices[i];
-		auto& vertexNormal = pMesh->normals[i];
-		sortedBuffer.insert(sortedBuffer.end(), { vertex.x, vertex.y, vertex.z, vertexNormal.x, vertexNormal.y, vertexNormal.z });
-	}
-
-	glBufferData(GL_ARRAY_BUFFER, sortedBuffer.size() * sizeof(float), sortedBuffer.data(), GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sortedBuffer.size() * sizeof(float), sortedBuffer.data(), GL_STATIC_DRAW);
 	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -86,7 +78,7 @@ int main() {
 	unsigned int EBO = 0;
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, pMesh->elementList.size() * sizeof(unsigned int), pMesh->elementList.data(), GL_STATIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, pMesh->elementList.size() * sizeof(unsigned int), pMesh->elementList.data(), GL_STATIC_DRAW);
 
 	//
 
@@ -138,7 +130,7 @@ int main() {
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
