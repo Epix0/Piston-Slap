@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
+#include "Mesh.h"
 
 class CustomModelImporter {
 public:
@@ -13,10 +14,10 @@ public:
 	size_t sizeSortedBuffer;
 
 	bool ImportModelFile(const std::string& pFile);
-	std::vector<float> sortedBuffer;
-	std::vector<float> normals;
-	std::vector<float> vertices;
-	std::vector<unsigned int> elementList;
+	std::unique_ptr<Mesh>&& getDecodedMesh();
+
+	//std::vector<unsigned int> elementList;
 private:
 	void ProcessScene(const aiScene* scene);
+	std::unique_ptr<Mesh> decodedMesh;
 };
