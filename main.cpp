@@ -27,7 +27,6 @@ int main() {
 	auto pImporter = upImporter.get();
 	pImporter->ImportModelFile("mymodel.fbx");
 
-	std::unique_ptr<Mesh> pMesh = std::make_unique<Mesh>("StupidAddMesh");
 
 	GLFWwindow* window;
 	int width = 600;
