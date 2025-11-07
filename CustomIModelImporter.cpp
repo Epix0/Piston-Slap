@@ -3,7 +3,8 @@
 
 void CustomModelImporter::ProcessScene(const aiScene* scene) {
     aiMesh* pMainMesh = scene->mMeshes[0];
-    
+
+
     if (scene->mNumMeshes > 1) {
         std::cout << "cannot process Mesh due to more than one mesh instanec for " << scene->mName.C_Str() << "\n";
         return;

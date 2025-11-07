@@ -97,6 +97,11 @@ void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
+void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec3) const
+{
+    glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &vec3[0]);
+}
+
 // Sets a uniform vec3 array. @name must have the element allocation included: e.g. "offset[100]"
 void ShaderProgram::setVec3Array(const std::string& name, unsigned int count, const glm::vec3& vec) const
 {
