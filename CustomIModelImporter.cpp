@@ -2,40 +2,41 @@
 #include <string>
 
 void CustomModelImporter::ProcessScene(const aiScene* scene) {
-    //std::cout << scene->mMeshes[0]->mvert << "\n";
     aiMesh* pMainMesh = scene->mMeshes[0];
     
+    if (scene->mNumMeshes > 1) {
+        std::cout << "cannot process Mesh due to more than one mesh instanec for " << scene->mName.C_Str() << "\n";
+        return;
+    }
+
+    // Creation of the Decoded Mesh
+    decodedMesh = std::make_unique<Mesh>("TheMesh");
+
     // Alloc area
-    this->elementList.reserve(pMainMesh->mNumFaces);
-    this->vertices.reserve(pMainMesh->mNumVertices);
-    this->normals.reserve(pMainMesh->mNumVertices);
-    this->sortedBuffer.reserve(pMainMesh->mNumVertices * static_cast<int64_t>(2)); //stfu linter
+    decodedMesh->vertices.reserve(pMainMesh->mNumVertices);
+    decodedMesh->elementList.reserve(pMainMesh->mNumFaces * static_cast<int64_t>(3));
+    decodedMesh->vertices.reserve(pMainMesh->mNumVertices);
+    decodedMesh->normals.reserve(pMainMesh->mNumVertices);
 
-    // Quick assignment area
-    this->numOfVertices = pMainMesh->mNumVertices;
-    this->sizeSortedBuffer = sizeof(float) * this->sortedBuffer.capacity();
+    std::cout << "BEFORE " << decodedMesh->elementList.capacity() << "\n";
 
-    for (unsigned int i = 0; i < pMainMesh->mNumFaces; i++) {
-        for (unsigned int j = 0; j < 3; j++) {
-            this->elementList.push_back(pMainMesh->mFaces[i].mIndices[j]);
+    // "EBO" portion
+    for (unsigned int i = 0; i < pMainMesh->mNumFaces; ++i) {
+        aiFace face = pMainMesh->mFaces[i];
+        for (unsigned int j = 0; j < face.mNumIndices; j++) {
+            decodedMesh->elementList.push_back(face.mIndices[j]);
         }
     }
+    std::cout << "AFTER " << decodedMesh->elementList.size() << "\n";
     
-    // Vertices are stored as such:
-    // { A_posX, A_posY, A_posZ, A_normalX, A_normalY, A_normalZ
-    // B_posX, B_posY, B_posZ, B_normalX, B_normalY, B_normalZ ... }
-
     // Anything bearing the same range as mNumVertices...
-    for (unsigned int i = 0; i < this->numOfVertices; i++) {
+    for (unsigned int i = 0; i < pMainMesh->mNumVertices; ++i) {
         // handling vertices
-        auto pVertex = pMainMesh->mVertices[i];
-        this->vertices.insert(this->vertices.end(), { pVertex.x, pVertex.y, pVertex.z });
-
+        auto vertex = pMainMesh->mVertices[i];
+        decodedMesh->vertices.emplace_back(vertex.x, vertex.y, vertex.z);
         // handling normals
-        auto pNormal = pMainMesh->mNormals[i];
-        this->normals.insert(this->normals.end(), { pNormal.x, pNormal.y, pNormal.z });
-
-        this->sortedBuffer.insert(this->sortedBuffer.end(), { pVertex.x, pVertex.y, pVertex.z, pNormal.x, pNormal.y, pNormal.z });
+        auto vertexNormal = pMainMesh->mNormals[i];
+        decodedMesh->normals.emplace_back(vertexNormal.x, vertexNormal.y, vertexNormal.z);
     }
 }
 
@@ -63,4 +64,9 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
 
     // We're done. Everything will be cleaned up by the importer destructor
     return true;
+}
+
+std::unique_ptr<Mesh>&& CustomModelImporter::getDecodedMesh()
+{
+    return std::move(decodedMesh);
 }

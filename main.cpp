@@ -61,7 +61,19 @@ int main() {
 	unsigned int VBO = 0;
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, pImporter->sortedBuffer.size() * sizeof(float), pImporter->sortedBuffer.data(), GL_STATIC_DRAW);
+
+	std::unique_ptr<Mesh> pMesh = pImporter->getDecodedMesh();
+
+	std::vector<float> sortedBuffer;
+	sortedBuffer.reserve(pMesh->vertices.size() * 2);
+
+	for (unsigned int i = 0; i < pMesh->vertices.size(); ++i) {
+		auto& vertex = pMesh->vertices[i];
+		auto& vertexNormal = pMesh->normals[i];
+		sortedBuffer.insert(sortedBuffer.end(), { vertex.x, vertex.y, vertex.z, vertexNormal.x, vertexNormal.y, vertexNormal.z });
+	}
+
+	glBufferData(GL_ARRAY_BUFFER, sortedBuffer.size() * sizeof(float), sortedBuffer.data(), GL_STATIC_DRAW);
 	
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -73,7 +85,7 @@ int main() {
 	unsigned int EBO = 0;
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, pImporter->elementList.size() * sizeof(unsigned int), pImporter->elementList.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, pMesh->elementList.size() * sizeof(unsigned int), pMesh->elementList.data(), GL_STATIC_DRAW);
 	
 	//
 
@@ -98,7 +110,6 @@ int main() {
 		trans = glm::rotate(trans, glm::radians(290.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		shader.setMat4("transform", trans);
 
-
 		glfwGetFramebufferSize(window, &width, &height);
 
 		glViewport(0, 0, width, height);
@@ -108,7 +119,7 @@ int main() {
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader.use();
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, pImporter->elementList.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
