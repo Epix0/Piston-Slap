@@ -105,7 +105,6 @@ int main() {
 
 	while (!glfwWindowShouldClose(window))
 	{
-		
 		glm::mat4 trans = glm::mat4(1.0f);
 		trans = glm::rotate(trans, glm::radians(290.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		shader.setMat4("transform", trans);

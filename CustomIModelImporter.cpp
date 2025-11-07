@@ -18,15 +18,13 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
     decodedMesh->vertices.reserve(pMainMesh->mNumVertices);
     decodedMesh->normals.reserve(pMainMesh->mNumVertices);
 
-    std::cout << "BEFORE " << decodedMesh->elementList.capacity() << "\n";
-
     // "EBO" portion
     for (unsigned int i = 0; i < pMainMesh->mNumFaces; ++i) {
+        aiFace& face = pMainMesh->mFaces[i];
         for (unsigned int j = 0; j < 3; j++) {
-            decodedMesh->elementList.push_back(pMainMesh->mFaces[i].mIndices[j]);
+            decodedMesh->elementList.push_back(face.mIndices[j]);
         }
     }
-    std::cout << "AFTER " << decodedMesh->elementList.size() << "\n";
     
     // Anything bearing the same range as mNumVertices...
     for (unsigned int i = 0; i < pMainMesh->mNumVertices; ++i) {
