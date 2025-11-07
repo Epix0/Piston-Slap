@@ -25,7 +25,7 @@ static void error_callback(int error, const char* description)
 int main() {
 	auto upImporter = std::make_unique<CustomModelImporter>();
 	auto pImporter = upImporter.get();
-	pImporter->ImportModelFile("mymodel.fbx");
+	pImporter->ImportModelFile("Untitled.glb");
 
 	GLFWwindow* window;
 	int width = 600;
@@ -106,8 +106,13 @@ int main() {
 	while (!glfwWindowShouldClose(window))
 	{
 		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::rotate(trans, glm::radians(290.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		trans = glm::translate(trans, glm::vec3(0, 0, -3.0f));
+		//trans = glm::rotate(trans, glm::radians(290.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		shader.setMat4("transform", trans);
+
+		glm::mat4 perspective = glm::mat4(1.0f);
+		perspective = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f);
+		shader.setMat4("perspective", perspective);
 
 		glfwGetFramebufferSize(window, &width, &height);
 
