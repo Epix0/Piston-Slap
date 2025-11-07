@@ -22,9 +22,8 @@ void CustomModelImporter::ProcessScene(const aiScene* scene) {
 
     // "EBO" portion
     for (unsigned int i = 0; i < pMainMesh->mNumFaces; ++i) {
-        aiFace face = pMainMesh->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; j++) {
-            decodedMesh->elementList.push_back(face.mIndices[j]);
+        for (unsigned int j = 0; j < 3; j++) {
+            decodedMesh->elementList.push_back(pMainMesh->mFaces[i].mIndices[j]);
         }
     }
     std::cout << "AFTER " << decodedMesh->elementList.size() << "\n";
