@@ -18,9 +18,6 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
         -> Through each mesh instance, create a Mesh obj and add it to the Model
     */
 
-    std::cout << model.mMeshes.capacity() << " BEFORE\n";
-    std::cout << scene->mNumMeshes << " MESHES\n";
-
     for (unsigned int childNodeIndex = 0; childNodeIndex < scene->mRootNode->mNumChildren; ++childNodeIndex) {
         aiNode* node = scene->mRootNode->mChildren[childNodeIndex];
         for (unsigned int meshIndex = 0; meshIndex < node->mNumMeshes; ++meshIndex) {
