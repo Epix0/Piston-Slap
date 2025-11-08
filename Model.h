@@ -6,6 +6,7 @@
 struct Model {
 public:
 	Model() : mNumOfMeshes(0), mName(std::string("Model")) {}
+	Model(const std::string& modelName) : mNumOfMeshes(0), mName(modelName) {}
 
 	// This will be the size of mMeshes during iteration
 	unsigned int mNumOfMeshes;
