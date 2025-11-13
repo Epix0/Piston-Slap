@@ -10,6 +10,7 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
     Model& model = mImportedModels.emplace_back();
     model.mName = modelName;
     model.mMeshes.reserve(scene->mNumMeshes);
+    model.mNumOfMeshes = scene->mNumMeshes;
 
     /*
     Create Model ->
@@ -27,12 +28,24 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
 
             meshOfModel.mVertices.reserve(sceneMeshChild->mNumVertices);
             meshOfModel.mNormals.reserve(sceneMeshChild->mNumVertices);
+            meshOfModel.mElements.reserve(static_cast<size_t>(sceneMeshChild->mNumFaces) * 3);
+ 
+            aiFace* facesArray = sceneMeshChild->mFaces;
+
+            for (size_t i = 0; i < sceneMeshChild->mNumFaces; ++i) {
+                auto& face = facesArray[0];
+                auto* indicesArray = face.mIndices;
+
+                for (size_t j = 0; j < face.mNumIndices; ++j) {
+                    meshOfModel.mElements.push_back(indicesArray[j]);
+                }
+            }
 
             for (unsigned int vertexIndex = 0; vertexIndex < sceneMeshChild->mNumVertices; vertexIndex++) {
                 auto& vertex = sceneMeshChild->mVertices[vertexIndex];
                 auto& normal = sceneMeshChild->mNormals[vertexIndex];
                 meshOfModel.mVertices.emplace_back(static_cast<float>(vertex.x), static_cast<float>(vertex.y), static_cast<float>(vertex.z));
-                meshOfModel.mVertices.emplace_back(static_cast<float>(normal.x), static_cast<float>(normal.y), static_cast<float>(normal.y));
+                meshOfModel.mNormals.emplace_back(static_cast<float>(normal.x), static_cast<float>(normal.y), static_cast<float>(normal.y));
             }
         }
     }
