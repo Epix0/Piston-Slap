@@ -30,10 +30,10 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
             meshOfModel.mNormals.reserve(sceneMeshChild->mNumVertices);
             meshOfModel.mElements.reserve(static_cast<size_t>(sceneMeshChild->mNumFaces) * 3);
  
+            // Elements
             aiFace* facesArray = sceneMeshChild->mFaces;
-
             for (size_t i = 0; i < sceneMeshChild->mNumFaces; ++i) {
-                auto& face = facesArray[0];
+                auto& face = facesArray[i];
                 auto* indicesArray = face.mIndices;
 
                 for (size_t j = 0; j < face.mNumIndices; ++j) {
@@ -41,6 +41,7 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
                 }
             }
 
+            // Vertices and Normals
             for (unsigned int vertexIndex = 0; vertexIndex < sceneMeshChild->mNumVertices; vertexIndex++) {
                 auto& vertex = sceneMeshChild->mVertices[vertexIndex];
                 auto& normal = sceneMeshChild->mNormals[vertexIndex];
