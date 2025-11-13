@@ -1,11 +1,7 @@
 #pragma once
-#include <iostream>
-#include <vector>
 #include <glm/glm.hpp>
 #include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
-#include "Mesh.h"
+#include "Model.h"
 
 class CustomModelImporter {
 public:
@@ -14,10 +10,7 @@ public:
 	size_t sizeSortedBuffer;
 
 	bool ImportModelFile(const std::string& pFile);
-	std::unique_ptr<Mesh>&& getDecodedMesh();
-
-	//std::vector<unsigned int> elementList;
+	std::vector<Model> mImportedModels;
 private:
-	void ProcessScene(const aiScene* scene);
-	std::unique_ptr<Mesh> decodedMesh;
+	void ProcessScene(const aiScene* scene, std::string&& modelName);
 };

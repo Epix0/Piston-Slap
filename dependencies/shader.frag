@@ -13,6 +13,6 @@ void main()
 	float diff = max(dot(normalNormalized, lightDir), 0.0f);
 	vec3 diffuse = diff * vec3(1.0f);
 
-	vec3 result = (vec3(0.1f) + diffuse) * vec3(1.0f, 0, 0);
+	vec3 result = (vec3(0.3f, .3f, 0) + diffuse) * vec3(0, 0.5f, 0);
 	FinalFragColor = vec4(result, 1.0f);
 };

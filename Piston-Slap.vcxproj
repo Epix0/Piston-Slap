@@ -142,14 +142,17 @@
     <ClCompile Include="CustomIModelImporter.cpp" />
     <ClCompile Include="InstanceService.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="other-src\glad.c" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="WorldInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="InstanceService.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="WorldInstance.h" />
   </ItemGroup>

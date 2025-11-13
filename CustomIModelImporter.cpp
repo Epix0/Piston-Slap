@@ -1,40 +1,54 @@
 #include "CustomIModelImporter.h"
 #include <string>
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+#include <iostream>
+#include <filesystem>
 
-void CustomModelImporter::ProcessScene(const aiScene* scene) {
-    aiMesh* pMainMesh = scene->mMeshes[0];
+// TODO: need to create a function to handle child nodes OF nodes. Currently only supports single-layered nodes from the RootNode
+void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& modelName) {
+    Model& model = mImportedModels.emplace_back();
+    model.mName = modelName;
+    model.mMeshes.reserve(scene->mNumMeshes);
+    model.mNumOfMeshes = scene->mNumMeshes;
 
+    /*
+    Create Model ->
+    From the rootnode, go through each node->
+    With each node, go through all its meshes ->
+        -> Through each mesh instance, create a Mesh obj and add it to the Model
+    */
 
-    if (scene->mNumMeshes > 1) {
-        std::cout << "cannot process Mesh due to more than one mesh instanec for " << scene->mName.C_Str() << "\n";
-        return;
-    }
+    for (unsigned int childNodeIndex = 0; childNodeIndex < scene->mRootNode->mNumChildren; ++childNodeIndex) {
+        aiNode* node = scene->mRootNode->mChildren[childNodeIndex];
+        for (unsigned int meshIndex = 0; meshIndex < node->mNumMeshes; ++meshIndex) {
+            aiMesh* sceneMeshChild = scene->mMeshes[meshIndex];
+            
+            Mesh& meshOfModel = model.mMeshes.emplace_back(sceneMeshChild->mName.C_Str());
 
-    // Creation of the Decoded Mesh
-    decodedMesh = std::make_unique<Mesh>("TheMesh");
+            meshOfModel.mVertices.reserve(sceneMeshChild->mNumVertices);
+            meshOfModel.mNormals.reserve(sceneMeshChild->mNumVertices);
+            meshOfModel.mElements.reserve(static_cast<size_t>(sceneMeshChild->mNumFaces) * 3);
+ 
+            // Elements
+            aiFace* facesArray = sceneMeshChild->mFaces;
+            for (size_t i = 0; i < sceneMeshChild->mNumFaces; ++i) {
+                auto& face = facesArray[i];
+                auto* indicesArray = face.mIndices;
 
-    // Alloc area
-    decodedMesh->vertices.reserve(pMainMesh->mNumVertices);
-    decodedMesh->elementList.reserve(pMainMesh->mNumFaces * static_cast<int64_t>(3));
-    decodedMesh->vertices.reserve(pMainMesh->mNumVertices);
-    decodedMesh->normals.reserve(pMainMesh->mNumVertices);
+                for (size_t j = 0; j < face.mNumIndices; ++j) {
+                    meshOfModel.mElements.push_back(indicesArray[j]);
+                }
+            }
 
-    // "EBO" portion
-    for (unsigned int i = 0; i < pMainMesh->mNumFaces; ++i) {
-        aiFace& face = pMainMesh->mFaces[i];
-        for (unsigned int j = 0; j < 3; j++) {
-            decodedMesh->elementList.push_back(face.mIndices[j]);
+            // Vertices and Normals
+            for (unsigned int vertexIndex = 0; vertexIndex < sceneMeshChild->mNumVertices; vertexIndex++) {
+                auto& vertex = sceneMeshChild->mVertices[vertexIndex];
+                auto& normal = sceneMeshChild->mNormals[vertexIndex];
+                meshOfModel.mVertices.emplace_back(static_cast<float>(vertex.x), static_cast<float>(vertex.y), static_cast<float>(vertex.z));
+                meshOfModel.mNormals.emplace_back(static_cast<float>(normal.x), static_cast<float>(normal.y), static_cast<float>(normal.y));
+            }
         }
-    }
-    
-    // Anything bearing the same range as mNumVertices...
-    for (unsigned int i = 0; i < pMainMesh->mNumVertices; ++i) {
-        // handling vertices
-        auto vertex = pMainMesh->mVertices[i];
-        decodedMesh->vertices.emplace_back(vertex.x, vertex.y, vertex.z);
-        // handling normals
-        auto vertexNormal = pMainMesh->mNormals[i];
-        decodedMesh->normals.emplace_back(vertexNormal.x, vertexNormal.y, vertexNormal.z);
     }
 }
 
@@ -58,13 +72,8 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
     }
 
     // Now we can access the file's contents.
-    ProcessScene(scene);
+    ProcessScene(scene, std::filesystem::path(pFile).filename().string());
 
     // We're done. Everything will be cleaned up by the importer destructor
     return true;
-}
-
-std::unique_ptr<Mesh>&& CustomModelImporter::getDecodedMesh()
-{
-    return std::move(decodedMesh);
 }

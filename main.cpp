@@ -16,6 +16,32 @@
 #include "WorldInstance.h"
 #include "ShaderProgram.h"
 #include "CustomIModelImporter.h"
+#include "Camera.hpp"
+
+// app settings
+int SCR_WIDTH = 800;
+int SCR_HEIGHT = 800;
+
+// GLOBAL
+
+// main world cam
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// debug lighting
+glm::vec3 lightPos(0);
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
+
+// /GLOBAL
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow* window);
 
 static void error_callback(int error, const char* description)
 {
@@ -23,15 +49,6 @@ static void error_callback(int error, const char* description)
 }
 
 int main() {
-	auto upImporter = std::make_unique<CustomModelImporter>();
-	auto pImporter = upImporter.get();
-	pImporter->ImportModelFile("mymodel.fbx");
-
-	std::unique_ptr<Mesh> pMesh = std::make_unique<Mesh>("StupidAddMesh");
-
-	GLFWwindow* window;
-	int width = 600;
-	int height = 600;
 	glfwSetErrorCallback(error_callback);
 
 	if (!glfwInit()) {
@@ -40,8 +57,12 @@ int main() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	window = glfwCreateWindow(640, 480, "Butt Monkey", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(640, 480, "Butt Monkey", NULL, NULL);
+	
+	
 	glfwMakeContextCurrent(window);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -54,42 +75,10 @@ int main() {
 	ShaderProgram shader("dependencies/shader.vert", "dependencies/shader.frag");
 	shader.use();
 
-	// VAO
-	unsigned int VAO = 0;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	//VBO
-	unsigned int VBO = 0;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	std::unique_ptr<Mesh> pMesh = pImporter->getDecodedMesh();
-
-	std::vector<float> sortedBuffer;
-	sortedBuffer.reserve(pMesh->vertices.size() * 2);
-
-	for (unsigned int i = 0; i < pMesh->vertices.size(); ++i) {
-		auto& vertex = pMesh->vertices[i];
-		auto& vertexNormal = pMesh->normals[i];
-		sortedBuffer.insert(sortedBuffer.end(), { vertex.x, vertex.y, vertex.z, vertexNormal.x, vertexNormal.y, vertexNormal.z });
-	}
-
-	glBufferData(GL_ARRAY_BUFFER, sortedBuffer.size() * sizeof(float), sortedBuffer.data(), GL_STATIC_DRAW);
-	
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	// EBO
-	unsigned int EBO = 0;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, pMesh->elementList.size() * sizeof(unsigned int), pMesh->elementList.data(), GL_STATIC_DRAW);
-
-	//
+	auto upImporter = std::make_unique<CustomModelImporter>();
+	auto pImporter = upImporter.get();
+	pImporter->ImportModelFile("crow_rig.glb");
+	pImporter->mImportedModels[0].PrepGLBuffers();
 
 	if (!window)
 	{
@@ -101,49 +90,87 @@ int main() {
 	gladLoadGL();
 	glfwSwapInterval(1);
 
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW); // It's set in stone now: elements should be intended to render counter clockwise
+	glFrontFace(GL_CW);
+	glCullFace(GL_FRONT);
 
 	glm::vec3 worldUp = glm::vec3(0, 1.0f, 0.0f);
-	glm::vec3 camPos = glm::vec3(0, 0, -3.0f);
-
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	glm::vec3 modelPos = glm::vec3(0, 0, 0.0f);
 
 	while (!glfwWindowShouldClose(window))
 	{
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		processInput(window);
 		shader.use();
 		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(0, 0, 0));
+		trans = glm::translate(trans, modelPos);
 		shader.setMat4("transform", trans);
 
 		glm::mat4 perspective = glm::mat4(1.0f);
 		perspective = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f);
 		shader.setMat4("perspective", perspective);
 
-		glm::vec3 targetPos(sin((float)glfwGetTime()) * 3.0f, cos((float)glfwGetTime()) * 7.0f, 3.50f);
+		glm::mat4 vCamera = camera.GetViewMatrix();
+		shader.setMat4("camera", vCamera);
 
-		glm::mat4 camera = glm::mat4(1.0f);
-		camera = glm::lookAt(glm::vec3(0, 1.0f, 3.50f), camPos, worldUp);
-		shader.setMat4("camera", camera);
+		shader.setVec3("aLightPos", lightPos);
 
-		shader.setVec3("aLightPos", targetPos);
+		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 
-		glfwGetFramebufferSize(window, &width, &height);
-
-		glViewport(0, 0, width, height);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		pImporter->mImportedModels[0].Draw();
+	
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	return 0;
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+	
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		lightPos = glm::vec3(camera.Position);
 }
