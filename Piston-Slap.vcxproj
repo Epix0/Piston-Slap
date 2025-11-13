@@ -148,6 +148,7 @@
     <ClCompile Include="WorldInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="InstanceService.h" />
     <ClInclude Include="Mesh.h" />
