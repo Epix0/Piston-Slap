@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <glm/glm.hpp>
+#include <glad/glad.h>
 
 /*	This structure is the usable data during GL draw calls.
 	Meshes are parts of a Model, which comes from Model.h
@@ -17,8 +18,14 @@ struct Mesh
 public:
 	Mesh() : mName("Model") {};
 	Mesh(const std::string& meshName) : mName(meshName) {};
+
+	// note to self if I question why vertex storage type is vec3 instead of float:
+	// it's easier to expand from each component when I go to apply it to the GL buffer.
+	// TODO: decide how a complete vertex buffer should be sorted so that a member can be made during Mesh import to skip the..
+	//			..process of converting Assimp's vec3 type to glm, which later is unpacked to floats
+
 	std::vector<glm::vec3> mNormals;
 	std::vector<glm::vec3> mVertices;
-	std::vector<unsigned int> mElements;
+	std::vector<GLuint> mElements;
 	std::string mName;
 };
