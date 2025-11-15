@@ -60,10 +60,11 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
     // Usually - if speed is not the most important aspect for you - you'll
     // probably to request more postprocessing than we do in this example.
     const aiScene* scene = importer.ReadFile(pFile,
-        aiProcess_CalcTangentSpace |
-        aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
-        aiProcess_SortByPType);
+        aiProcess_SortByPType|
+        aiProcess_Triangulate|
+        aiProcess_FixInfacingNormals|
+        aiProcess_GenNormals);
 
     // If the import failed, report it
     if (nullptr == scene) {
