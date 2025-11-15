@@ -113,7 +113,7 @@
       <AdditionalDependencies>$(ProjectDir)libraries\*;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(ProjectDir)\dependencies\* $(OutputPath)</Command>
+      <Command>xcopy /y /s /e $(ProjectDir)\dependencies\* $(OutputPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,7 +135,7 @@
       <AdditionalDependencies>$(ProjectDir)libraries\*;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(ProjectDir)\dependencies\* $(OutputPath)</Command>
+      <Command>xcopy /y /s /e $(ProjectDir)\dependencies\* $(OutputPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
