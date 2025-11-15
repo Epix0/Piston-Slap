@@ -1,7 +1,6 @@
 #include "ShaderProgram.h"
 
-ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath)
-{
+ShaderProgram::ShaderProgram(const string& vertexPath, const string& fragmentPath){
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;
@@ -82,7 +81,7 @@ void ShaderProgram::use() const
 
 void ShaderProgram::setBool(const std::string& name, bool value) const
 {
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    glUniform1i(glGetUniformLocation(ID, name.c_str()), static_cast<int>(value));
 }
 void ShaderProgram::setInt(const std::string& name, int value) const
 {
@@ -94,16 +93,16 @@ void ShaderProgram::setFloat(const std::string& name, float value) const
 }
 void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const
 {
-    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec3) const
 {
-    glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &vec3[0]);
+    glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec3));
 }
 
 // Sets a uniform vec3 array. @name must have the element allocation included: e.g. "offset[100]"
-void ShaderProgram::setVec3Array(const std::string& name, unsigned int count, const glm::vec3& vec) const
+void ShaderProgram::setVec3Array(const std::string& name, unsigned int count, const glm::vec3& vec3) const
 {
-    glUniform3fv(glGetUniformLocation(ID, name.c_str()), count, &vec[0]);
+    glUniform3fv(glGetUniformLocation(ID, name.c_str()), count, glm::value_ptr(vec3));
 }

@@ -15,8 +15,8 @@ void main()
 {
 	//vec4 finalPos = vec4(aPos.x, aPos.y, aPos.z, 1.0f);
 	//gl_Position = vec4(aPos, 1.0f);
-	gl_Position = perspective * transform * camera * vec4(aPos, 1.0);
-
+	
+	gl_Position = perspective * camera * transform * vec4(aPos, 1.0f);
 	lightPos = aLightPos;
 	fragPos = aPos;
 	normal = aNormal;
