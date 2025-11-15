@@ -32,9 +32,9 @@ extern "C" {
 int SCR_WIDTH = 800;
 int SCR_HEIGHT = 800;
 const struct Directory {
-	static inline const string Dependencies = "dependencies/";
-	static inline const string Models = Dependencies + "models/";
-	static inline const string Textures = Dependencies + "textures/";
+	static inline const string Shaders = "shaders/";
+	static inline const string Models = "models/";
+	static inline const string Textures = "textures/";
 };
 
 // GLOBAL
@@ -73,7 +73,6 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	GLFWwindow* window = glfwCreateWindow(640, 480, "Butt Monkey", NULL, NULL);
 	
-	
 	glfwMakeContextCurrent(window);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -86,7 +85,7 @@ int main() {
 
 	// This stuff will need wrapped soon!!!
 	
-	ShaderProgram shader(Directory::Dependencies + "shader.vert", Directory::Dependencies + "shader.frag");
+	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
 
 	auto upImporter = std::make_unique<CustomModelImporter>();
