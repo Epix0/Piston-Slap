@@ -6,6 +6,7 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+using std::string;
 
 class ShaderProgram
 {
@@ -14,7 +15,7 @@ public:
     unsigned int ID;
 
     // constructor reads and builds the shader
-    ShaderProgram(const char* vertexPath, const char* fragmentPath);
+    ShaderProgram(const string& vertexPath, const string& fragmentPath);
     // use/activate the shader
     void use() const;
     // utility uniform functions
