@@ -143,8 +143,8 @@
     <ClCompile Include="InstanceService.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Model.cpp" />
-    <ClCompile Include="other-src\glad.c" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="vendor-source\glad.c" />
     <ClCompile Include="WorldInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
