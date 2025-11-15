@@ -2,10 +2,20 @@
 #include <iostream>
 #include <memory>
 
+using std::string;
+
 // vendor
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION // [1])
+#include <stb/stb_image.h>		//	[2])
+
+extern "C" {
+#include <lua/lua.h>
+#include <lua/lauxlib.h>
+#include <lua/lualib.h>
+}
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -21,6 +31,11 @@
 // app settings
 int SCR_WIDTH = 800;
 int SCR_HEIGHT = 800;
+const struct Directory {
+	static inline const string Dependencies = "dependencies/";
+	static inline const string Models = Dependencies + "models/";
+	static inline const string Textures = Dependencies + "textures/";
+};
 
 // GLOBAL
 
@@ -30,7 +45,6 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// debug lighting
 glm::vec3 lightPos(0);
 
 // timing
@@ -72,12 +86,12 @@ int main() {
 
 	// This stuff will need wrapped soon!!!
 	
-	ShaderProgram shader("dependencies/shader.vert", "dependencies/shader.frag");
+	ShaderProgram shader(Directory::Dependencies + "shader.vert", Directory::Dependencies + "shader.frag");
 	shader.use();
 
 	auto upImporter = std::make_unique<CustomModelImporter>();
 	auto pImporter = upImporter.get();
-	pImporter->ImportModelFile("crow_rig.glb");
+	pImporter->ImportModelFile(Directory::Models + "cube/cube.fbx");
 	pImporter->mImportedModels[0].PrepGLBuffers();
 
 	if (!window)
@@ -90,39 +104,55 @@ int main() {
 	gladLoadGL();
 	glfwSwapInterval(1);
 
-	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glCullFace(GL_FRONT);
 
 	glm::vec3 worldUp = glm::vec3(0, 1.0f, 0.0f);
-	glm::vec3 modelPos = glm::vec3(0, 0, 0.0f);
+	glm::vec3 modelPos = glm::vec3(0, 0, -5.0f);
+	
+	//stb bs
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("dependencies/textures/container.jpg", &width, &height, &nrChannels, 0);
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_3D, texture);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height, width, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_3D);
+	stbi_image_free(data);
 
 	while (!glfwWindowShouldClose(window))
 	{
+		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		processInput(window);
 		shader.use();
 		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, modelPos);
+		trans = glm::rotate(glm::translate(trans, modelPos), glm::radians(45.0f), glm::vec3(0, 1.0f, 0));
+		//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 		shader.setMat4("transform", trans);
 
 		glm::mat4 perspective = glm::mat4(1.0f);
-		perspective = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f);
+		perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
 		shader.setMat4("perspective", perspective);
 
-		glm::mat4 vCamera = camera.GetViewMatrix();
-		shader.setMat4("camera", vCamera);
-
+		shader.setMat4("camera", camera.GetViewMatrix());
 		shader.setVec3("aLightPos", lightPos);
 
-		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
-
+		
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		pImporter->mImportedModels[0].Draw();
 	
@@ -172,5 +202,5 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 	
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		lightPos = glm::vec3(camera.Position);
+		lightPos = camera.Position;
 }
