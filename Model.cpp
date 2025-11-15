@@ -1,7 +1,6 @@
 #include "Model.h"
 #include <iostream>
 
-GLuint Model::mBufferIdAssignment = 1;
 using std::cout;
 
 void Model::Draw(){
@@ -53,24 +52,13 @@ void Model::PrepGLBuffers(){
 
 		// vertex geometry, vertex normals
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh.mElements.size(), mesh.mElements.data(), GL_STATIC_DRAW);
-		std::cout << "Element buffering: " << glGetError() << "\n";
-
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * joinedVertexData.size(), joinedVertexData.data(), GL_DYNAMIC_DRAW);
-		std::cout << "VBO buffering: " << glGetError() << "\n";
-		
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)0); // Geometry
-		std::cout << "VBO attributes: " << glGetError() << "\n";
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*) (sizeof(float) * 3)); // Normals
-		std::cout << "Element attributes: " << glGetError() << "\n";
 		glEnableVertexAttribArray(1);
 	}
 
 
 	mAreBuffersLoaded = true;
-}
-
-GLuint Model::GetABufferId()
-{
-	return mBufferIdAssignment++;
 }
