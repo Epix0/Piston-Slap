@@ -65,7 +65,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\glfw3.dll" />
-    <None Include="dependencies\shader.frag" />
-    <None Include="dependencies\shader.vert" />
   </ItemGroup>
 </Project>
