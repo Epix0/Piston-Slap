@@ -22,8 +22,6 @@ extern "C" {
 #include <glm/gtc/type_ptr.hpp>
 
 // personal
-#include "Mesh.h"
-#include "WorldInstance.h"
 #include "ShaderProgram.h"
 #include "CustomIModelImporter.h"
 #include "Camera.hpp"
@@ -88,10 +86,8 @@ int main() {
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
 
-	auto upImporter = std::make_unique<CustomModelImporter>();
-	auto pImporter = upImporter.get();
+	auto pImporter = std::make_unique<CustomModelImporter>();
 	pImporter->ImportModelFile(Directory::Models + "cube/cube.fbx");
-	pImporter->mImportedModels[0].PrepGLBuffers();
 
 	if (!window)
 	{
@@ -103,8 +99,8 @@ int main() {
 	gladLoadGL();
 	glfwSwapInterval(1);
 
-	glDisable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 	glCullFace(GL_FRONT);
@@ -128,6 +124,10 @@ int main() {
 	glGenerateMipmap(GL_TEXTURE_3D);
 	stbi_image_free(data);
 
+	Model& model = pImporter->mImportedModels[0];
+
+	model.setPos(glm::vec3(0));
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
@@ -135,25 +135,23 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		processInput(window);
-		shader.use();
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::rotate(glm::translate(trans, modelPos), glm::radians(45.0f), glm::vec3(0, 1.0f, 0));
-		//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-		shader.setMat4("transform", trans);
-
+		
 		glm::mat4 perspective = glm::mat4(1.0f);
-		perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
-		shader.setMat4("perspective", perspective);
+		perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 10.0f);
 
-		shader.setMat4("camera", camera.GetViewMatrix());
-		shader.setVec3("aLightPos", lightPos);
-
+		shader.use();
+		
+		shader.setMat4("projection", perspective);
+		shader.setMat4("view", camera.GetViewMatrix());
+		shader.setVec3("lightPos", lightPos);
+		shader.setVec3("objectColor", glm::vec3(1.0f, 0, 0));
+		shader.setVec3("lightColor", glm::vec3(1.0f));
 		
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		pImporter->mImportedModels[0].Draw();
+		pImporter->mImportedModels[0].Draw(shader);
 	
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		//glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
