@@ -8,6 +8,8 @@
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
+ShaderProgram::StandardUniforms ShaderProgram::Uniforms{ "projection", "view" , "model" };
+
 ShaderProgram::ShaderProgram(const string& vertexPath, const string& fragmentPath){
     std::string vertexCode;
     std::string fragmentCode;

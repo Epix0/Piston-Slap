@@ -4,20 +4,21 @@
 
 using std::string;
 
-// Key: Any friendly handle to the uniform ID
-// Value: The shader-specific uniform variable
-struct StandardUniforms {
-    // Clip Space
-    string Projection = "projection";
-    // Camera/Viewing perspective
-    string View = "view";
-    // World Space
-    string Model = "model";
-};
-
 class ShaderProgram
 {
+    // Key: Any friendly handle to the uniform ID
+    // Value: The shader-specific uniform variable
+    struct StandardUniforms {
+        // Clip Space
+        string Projection;
+        // Camera/Viewing perspective
+        string View;
+        // World Space
+        string Model;
+    };
 public:
+    static StandardUniforms Uniforms;
+    
     // the program ID
     unsigned int ID;
 
@@ -25,8 +26,7 @@ public:
     ShaderProgram(const string& vertexPath, const string& fragmentPath);
     // use/activate the shader
     void use() const;
-
-    static StandardUniforms Uniforms;
+       
 
     // utility uniform functions
     void setBool(const std::string& name, bool value) const;
