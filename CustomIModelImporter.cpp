@@ -67,6 +67,7 @@ void CustomModelImporter::ProcessNode(const aiNode* node, Model& model, const ai
         }
        
         // Mesh finalization
+        meshOfModel.PrepareForGL();
     }
 }
 
