@@ -5,8 +5,13 @@
 #include <iostream>
 #include <filesystem>
 #include <mutex>
+#include "assimp/Importer.hpp"
+#include "assimp/mesh.h"
+#include "glm/fwd.hpp"
+#include "Mesh.h"
+#include "Model.h"
 
-using std::mutex;
+using std::mutex, std::string;
 
 void CustomModelImporter::ProcessNode(const aiNode* node, Model& model, const aiScene* scene) const {
     if (node->mNumChildren > 0) {
@@ -16,13 +21,14 @@ void CustomModelImporter::ProcessNode(const aiNode* node, Model& model, const ai
     }
 
     for (unsigned int meshIndex = 0; meshIndex < node->mNumMeshes; ++meshIndex) {
+        // This is the scene's mesh
         aiMesh* sceneMeshChild = scene->mMeshes[meshIndex];
 
-        Mesh& meshOfModel = model.mMeshes.emplace_back(sceneMeshChild->mName.C_Str());
+        // This is my mesh
+        Mesh& meshOfModel = model.mMeshes.emplace_back();
 
-        meshOfModel.mVertices.reserve(sceneMeshChild->mNumVertices);
-        meshOfModel.mNormals.reserve(sceneMeshChild->mNumVertices);
-        meshOfModel.mElements.reserve(static_cast<size_t>(sceneMeshChild->mNumFaces) * 3);
+        meshOfModel.mVertexData.reserve(sceneMeshChild->mNumVertices);
+        meshOfModel.mElements.reserve(static_cast<size_t>(sceneMeshChild->mNumFaces) * 3); // post proc flags forces trianulation, so it's safe to assume 3
 
         // Elements
         aiFace* facesArray = sceneMeshChild->mFaces;
@@ -35,13 +41,32 @@ void CustomModelImporter::ProcessNode(const aiNode* node, Model& model, const ai
             }
         }
 
-        // Vertices and Normals
+        // TexCoords. While the iteration len is mNumVertices, only the first (0) set is used
+        auto ptrTexCoordsArray = sceneMeshChild->mTextureCoords[0]; // the first set only
+
+         // Vertices and Normals
         for (unsigned int vertexIndex = 0; vertexIndex < sceneMeshChild->mNumVertices; vertexIndex++) {
-            auto& vertex = sceneMeshChild->mVertices[vertexIndex];
+            Vertex vertex{};
+
+            auto& positionVertex = sceneMeshChild->mVertices[vertexIndex];
             auto& normal = sceneMeshChild->mNormals[vertexIndex];
-            meshOfModel.mVertices.emplace_back(static_cast<float>(vertex.x), static_cast<float>(vertex.y), static_cast<float>(vertex.z));
-            meshOfModel.mNormals.emplace_back(static_cast<float>(normal.x), static_cast<float>(normal.y), static_cast<float>(normal.z));
+            vertex.Position = glm::vec3(positionVertex.x, positionVertex.y, positionVertex.z);
+            vertex.Normal = glm::vec3(normal.x, normal.y, normal.z);
+            
+            // TexCoords is an array itself, check if there's validation first
+            if (ptrTexCoordsArray) {
+                for (unsigned int i = 0; i < sceneMeshChild->mNumVertices; ++i) {
+                    auto& uvCoords = ptrTexCoordsArray[i];
+                    vertex.TexCoords = glm::vec2(uvCoords.x, uvCoords.y);
+                }
+            } else {
+                vertex.TexCoords = glm::vec2(0);
+            }
+            
+            meshOfModel.mVertexData.push_back(vertex);
         }
+       
+        // Mesh finalization
     }
 }
 
@@ -49,7 +74,6 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
     Model& model = mImportedModels.emplace_back();
     model.mName = modelName;
     model.mMeshes.reserve(scene->mNumMeshes);
-    model.mNumOfMeshes = scene->mNumMeshes;
 
     for (unsigned int childNodeIndex = 0; childNodeIndex < scene->mRootNode->mNumChildren; ++childNodeIndex) {
         ProcessNode(scene->mRootNode->mChildren[childNodeIndex], model, scene);
