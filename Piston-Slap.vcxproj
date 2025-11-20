@@ -144,10 +144,11 @@
     <ClCompile Include="CustomIModelImporter.cpp" />
     <ClCompile Include="InstanceService.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="vendor-source\glad.c" />
-    <ClCompile Include="WorldInstance.cpp" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
@@ -156,7 +157,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ShaderProgram.h" />
-    <ClInclude Include="WorldInstance.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\glfw3.dll" />
