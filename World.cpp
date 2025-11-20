@@ -6,6 +6,7 @@
 using std::shared_ptr;
 
 int World::_worldInstances = 0;
+World::WorldInstance World::worldInstance = nullptr;
 
 shared_ptr<World> World::getWorld() {
 	if (worldInstance == nullptr) {

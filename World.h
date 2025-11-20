@@ -15,6 +15,8 @@ class World {
 	static int _worldInstances;
 #endif
 public:
+	typedef shared_ptr<World> WorldInstance;
+
 	World() : mWorldIdentity(1.0f) {
 		#if TRACKING_WORLD_INSTANCES
 			if (++_worldInstances > 1) {
