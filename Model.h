@@ -40,6 +40,7 @@ public:
 	// Ensure to call updateMatrix() to finalize this update
 	void setOrientationRad(glm::vec3 newOrientation);
 
+	glm::vec3 getPos() const;
 
 	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-using std::string;
+using std::string, std::cout;
 
 // vendor
 #include <glad/glad.h>
@@ -87,7 +87,8 @@ int main() {
 	shader.use();
 
 	auto pImporter = std::make_unique<CustomModelImporter>();
-	pImporter->ImportModelFile(Directory::Models + "test.stl");
+	//pImporter->ImportModelFile(Directory::Models + "cube/cube.fbx");
+	pImporter->ImportModelFile(Directory::Models + "car.stl");
 
 	if (!window)
 	{
@@ -119,9 +120,9 @@ int main() {
 	//glGenerateMipmap(GL_TEXTURE_3D);
 	//stbi_image_free(data);
 
-	Model& myModel = pImporter->mImportedModels[0];
+	Model& cubeModel = pImporter->mImportedModels[0];
 
-	myModel.setPos(glm::vec3(0));
+	cubeModel.setPos(glm::vec3(0));
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -132,11 +133,18 @@ int main() {
 		processInput(window);
 		
 		glm::mat4 perspective = glm::mat4(1.0f);
-		perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 10.0f);
+		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 200.0f);
 
-		//myModel.setPos(glm::vec3(0, (sinf(currentFrame * 6.0f) * 20.0f) * deltaTime, 0));
-		//myModel.setOrientationDeg(glm::vec3(0, currentFrame * 60.0f, 0));
-		//myModel.updateMatrix();
+		//glm::vec3 curPos = myModel.getPos();
+		//cout << "BEFORE " << curPos.x << " " << curPos.y << " " << curPos.z << "\n";
+
+
+		//glm::vec3 postPos = myModel.getPos();
+		//cout << "AFTER " << postPos.x << " " << postPos.y << " " << postPos.z << "\n";
+
+		//cubeModel.setPos(glm::vec3(0, sinf(currentFrame) * .5f, 0));
+		cubeModel.setOrientationDeg(glm::vec3(0, currentFrame * 60.0f, 0));
+		cubeModel.updateMatrix();
 
 		shader.use();
 		shader.setMat4("projection", perspective);
@@ -150,7 +158,7 @@ int main() {
 		glClearColor(.2f, 0, .5f, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		myModel.Draw(shader);
+		cubeModel.Draw(shader);
 	
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		//glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);

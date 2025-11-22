@@ -110,9 +110,6 @@ void CustomModelImporter::ProcessScene(const aiScene* scene, std::string&& model
         }
     }
 
-    //model.mWorldMatrix = rootTransform;
-
-
     ProcessNode(scene->mRootNode, model, scene);
 
    /* for (unsigned int childNodeIndex = 0; childNodeIndex < scene->mRootNode->mNumChildren; ++childNodeIndex) {
