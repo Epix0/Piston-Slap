@@ -3,6 +3,7 @@
 #include <string>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include "ShaderProgram.h"
 
 using std::string, std::vector;
 
@@ -17,7 +18,9 @@ struct Vertex {
 struct Texture {
 	unsigned int id;
 	string type;
+	string path;
 };
+
 
 class Mesh {
 public:
@@ -26,11 +29,13 @@ public:
 
 	void PrepareForGL();
 
-	// Utilizes the active shader. *All* uniforms should be set prior to this call
-	void Draw() const;
+	// Shader should be active already.
+	// @shader is passed so that mesh-specific textures are set to their uniforms accordingly
+	void Draw(ShaderProgram& shader) const;
 	// Comprised of all the data used in the VBO
 	vector<Vertex> mVertexData;
 	vector<GLuint> mElements;
+	vector<Texture> mTextureData;
 	
 private:
 	GLuint VAO;
