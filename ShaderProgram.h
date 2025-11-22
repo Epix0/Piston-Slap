@@ -1,16 +1,24 @@
 #pragma once
-#include <glad/glad.h>
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/fwd.hpp"
+
 using std::string;
 
 class ShaderProgram
 {
+    // Key: Any friendly handle to the uniform ID
+    // Value: The shader-specific uniform variable
+    struct StandardUniforms {
+        // Clip Space
+        string Projection;
+        // Camera/Viewing perspective
+        string View;
+        // World Space
+        string Model;
+    };
 public:
+    static StandardUniforms Uniforms;
+    
     // the program ID
     unsigned int ID;
 
@@ -18,8 +26,9 @@ public:
     ShaderProgram(const string& vertexPath, const string& fragmentPath);
     // use/activate the shader
     void use() const;
-    // utility uniform functions
+       
 
+    // utility uniform functions
     void setBool(const std::string& name, bool value) const;
     void setInt(const std::string& name, int value) const;
     void setFloat(const std::string& name, float value) const;

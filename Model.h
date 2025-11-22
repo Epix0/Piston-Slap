@@ -1,36 +1,60 @@
 #pragma once
 #include "Mesh.h"
-#include <vector>
-#include <string>
 #include "ShaderProgram.h"
-#include <glad/glad.h>
+#include <string>
+#include <vector>
+#include "assimp/material.h"
+#include "glad/glad.h"
+#include "glm/fwd.hpp"
+
+using std::string, std::vector;
 
 class Model {
 public:
 	friend class CustomModelImporter;
-	Model(const std::string& modelName = std::string("Unnamed_Model")) : mAreBuffersLoaded(false), mNumOfMeshes(0), mName(modelName) {};
+	Model(const string& modelName = string("Unnamed_Model"))
+		: directory(""), mName(modelName), mWorldPos(0), mWorldOrientation(0), mScale(1.0f), mWorldMatrix(1.0f) {};
+	
+	// MEMBERS
+	
+	string directory;
+	vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+	
+	// FUNCTIONS
 
-	/*
-		@brief Runs every draw call per this Model's Mesh(s)
-	*/
-	void Draw();
-	void PrepGLBuffers();
+	// @shader should be activated/used() prior to this call.
+	// This function is only concerned with getting the Model on the screen and translated from World space.
+	// View, Projection and other uniforms should be set prior to this call.
+	void Draw(ShaderProgram& shader) const;
+
+	void setPos(glm::vec3 newPos);
+
+	// Pushes position and rotation properties to final render matrix
+	void updateMatrix();
+
+	// @newOrientation is in Euler angles format in DEGREES
+	// Ensure to call updateMatrix() to finalize this update
+	void setOrientationDeg(glm::vec3 newOrientation);
+
+	// @newOrientation is in Euler angles format in RADIANS
+	// Ensure to call updateMatrix() to finalize this update
+	void setOrientationRad(glm::vec3 newOrientation);
+
+
+	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
+
+	std::vector<Mesh> mMeshes;
 private:
-	// Default: false. Becomes true after calling PrepGLBuffers()
-	bool mAreBuffersLoaded;
-	// This will be the size of mMeshes during iteration
-	size_t mNumOfMeshes;
 	// Vector of all the Meshes that make up this model.
 	std::string mName;
-	std::vector<Mesh> mMeshes;
-	
-	//**
-	// These members are meant to store Mesh-specific GL buffers.
-	// These members are in order, where retrieving the buffers for a 0-index Mesh from mMesh..
-	// is as simple as using that index in each of these vectors (mVAOs[0] for Mesh #1)
-	// edit: might only keep the VAOs since they already cache the handles to the other buffer objects itself
-	
-	std::vector<GLuint> mVAOs;
-	std::vector<GLuint> mVBOs;
-	std::vector<GLuint> mEBOs;
+	glm::vec3 mWorldPos;
+
+	// each component will already be in radians
+	glm::vec3 mWorldOrientation;
+	glm::vec3 mScale;
+
+	// Written to when updateMatrix() is called
+	glm::mat4 mWorldMatrix;
+
+	GLuint TextureFromFile(const char* path, const string& directory, bool gamma = false);
 };

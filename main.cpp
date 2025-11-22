@@ -1,6 +1,7 @@
 // sys
 #include <iostream>
 #include <memory>
+#include <string>
 
 using std::string;
 
@@ -19,11 +20,8 @@ extern "C" {
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 // personal
-#include "Mesh.h"
-#include "WorldInstance.h"
 #include "ShaderProgram.h"
 #include "CustomIModelImporter.h"
 #include "Camera.hpp"
@@ -71,7 +69,7 @@ int main() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Butt Monkey", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(640, 480, "PRERELEASE PistonSlap: Rendering", NULL, NULL);
 	
 	glfwMakeContextCurrent(window);
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -88,10 +86,8 @@ int main() {
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
 
-	auto upImporter = std::make_unique<CustomModelImporter>();
-	auto pImporter = upImporter.get();
-	pImporter->ImportModelFile(Directory::Models + "cube/cube.fbx");
-	pImporter->mImportedModels[0].PrepGLBuffers();
+	auto pImporter = std::make_unique<CustomModelImporter>();
+	pImporter->ImportModelFile(Directory::Models + "test.stl");
 
 	if (!window)
 	{
@@ -103,30 +99,29 @@ int main() {
 	gladLoadGL();
 	glfwSwapInterval(1);
 
-	glDisable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CW);
-	glCullFace(GL_FRONT);
+	glEnable(GL_DEPTH_TEST);
 
 	glm::vec3 worldUp = glm::vec3(0, 1.0f, 0.0f);
-	glm::vec3 modelPos = glm::vec3(0, 0, -5.0f);
 	
 	//stb bs
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load("dependencies/textures/container.jpg", &width, &height, &nrChannels, 0);
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_3D, texture);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height, width, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_3D);
-	stbi_image_free(data);
+	//int width, height, nrChannels;
+	//unsigned char* data = stbi_load("dependencies/textures/container.jpg", &width, &height, &nrChannels, 0);
+	//unsigned int texture;
+	//glGenTextures(1, &texture);
+	//glBindTexture(GL_TEXTURE_3D, texture);
+	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	////glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	//glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height, width, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	//glGenerateMipmap(GL_TEXTURE_3D);
+	//stbi_image_free(data);
+
+	Model& myModel = pImporter->mImportedModels[0];
+
+	myModel.setPos(glm::vec3(0));
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -135,25 +130,27 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		processInput(window);
-		shader.use();
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::rotate(glm::translate(trans, modelPos), glm::radians(45.0f), glm::vec3(0, 1.0f, 0));
-		//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-		shader.setMat4("transform", trans);
-
-		glm::mat4 perspective = glm::mat4(1.0f);
-		perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
-		shader.setMat4("perspective", perspective);
-
-		shader.setMat4("camera", camera.GetViewMatrix());
-		shader.setVec3("aLightPos", lightPos);
-
 		
+		glm::mat4 perspective = glm::mat4(1.0f);
+		perspective = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 10.0f);
+
+		//myModel.setPos(glm::vec3(0, (sinf(currentFrame * 6.0f) * 20.0f) * deltaTime, 0));
+		//myModel.setOrientationDeg(glm::vec3(0, currentFrame * 60.0f, 0));
+		//myModel.updateMatrix();
+
+		shader.use();
+		shader.setMat4("projection", perspective);
+		shader.setMat4("view", camera.GetViewMatrix());
+		shader.setVec3("lightPos", lightPos);
+		shader.setVec3("viewPos", lightPos);
+		shader.setVec3("objectColor", glm::vec3(1.0f, 0, 0));
+		shader.setVec3("lightColor", glm::vec3(1.0f));
+
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		pImporter->mImportedModels[0].Draw();
+		myModel.Draw(shader);
 	
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		//glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);

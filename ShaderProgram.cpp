@@ -1,4 +1,14 @@
 #include "ShaderProgram.h"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include "glm/fwd.hpp"
+#include <ios>
+#include <string>
+#include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
+
+ShaderProgram::StandardUniforms ShaderProgram::Uniforms{ "projection", "view" , "model" };
 
 ShaderProgram::ShaderProgram(const string& vertexPath, const string& fragmentPath){
     std::string vertexCode;
