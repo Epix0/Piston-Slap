@@ -118,3 +118,7 @@ void Model::setOrientationDeg(glm::vec3 newOrientation) {
 void Model::setOrientationRad(glm::vec3 newOrientation) {
 	mWorldOrientation = newOrientation;
 }
+
+glm::vec3 Model::getPos() const {
+    return mWorldPos;
+}
