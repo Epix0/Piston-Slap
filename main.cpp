@@ -1,30 +1,26 @@
-// sys
+#include "glm/glm.hpp"
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
-#include <memory>
 #include <string>
+#include <stb/stb_image.h>
 
+// The default cube now has 2 meshes... but there are 3 VAOs. Perhaps that's why nothing's rendering. Start there
+// In fact, there are weird numbers everywhere. Mesh vector is 8 in size when it should be 2???
 using std::string, std::cout;
 
-// vendor
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION // [1])
-#include <stb/stb_image.h>		//	[2])
 
 extern "C" {
-#include <lua/lua.h>
-#include <lua/lauxlib.h>
-#include <lua/lualib.h>
 }
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 // personal
 #include "ShaderProgram.h"
-#include "CustomIModelImporter.h"
 #include "Camera.hpp"
+#include "CustomIModelImporter.h"
 
 // app settings
 int SCR_WIDTH = 800;
@@ -61,8 +57,6 @@ static void error_callback(int error, const char* description)
 }
 
 int main() {
-	glfwSetErrorCallback(error_callback);
-
 	if (!glfwInit()) {
 		exit(EXIT_FAILURE);
 	}
@@ -81,15 +75,16 @@ int main() {
 		return 43;
 	}
 
-	// This stuff will need wrapped soon!!!
 	
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
+	// Shader config
+	stbi_set_flip_vertically_on_load(true);
+
 
 	auto pImporter = std::make_unique<CustomModelImporter>();
-	//pImporter->ImportModelFile(Directory::Models + "cube/cube.fbx");
-	pImporter->ImportModelFile(Directory::Models + "car.stl");
-
+	pImporter->ImportModelFile(Directory::Models + "car/car.fbx");
+	
 	if (!window)
 	{
 		glfwTerminate();
@@ -101,28 +96,14 @@ int main() {
 	glfwSwapInterval(1);
 
 	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glm::vec3 worldUp = glm::vec3(0, 1.0f, 0.0f);
-	
-	//stb bs
-	//int width, height, nrChannels;
-	//unsigned char* data = stbi_load("dependencies/textures/container.jpg", &width, &height, &nrChannels, 0);
-	//unsigned int texture;
-	//glGenTextures(1, &texture);
-	//glBindTexture(GL_TEXTURE_3D, texture);
-	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	////glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	//glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height, width, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	//glGenerateMipmap(GL_TEXTURE_3D);
-	//stbi_image_free(data);
+	Model& myModel = pImporter->mImportedModels[0];
 
-	Model& cubeModel = pImporter->mImportedModels[0];
-
-	cubeModel.setPos(glm::vec3(0));
+	myModel.setPos(glm::vec3(0, 0, 0));
+	myModel.pushTransformUpdate();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -132,36 +113,23 @@ int main() {
 		lastFrame = currentFrame;
 		processInput(window);
 		
-		glm::mat4 perspective = glm::mat4(1.0f);
-		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 200.0f);
-
-		//glm::vec3 curPos = myModel.getPos();
-		//cout << "BEFORE " << curPos.x << " " << curPos.y << " " << curPos.z << "\n";
-
-
-		//glm::vec3 postPos = myModel.getPos();
-		//cout << "AFTER " << postPos.x << " " << postPos.y << " " << postPos.z << "\n";
-
-		//cubeModel.setPos(glm::vec3(0, sinf(currentFrame) * .5f, 0));
-		cubeModel.setOrientationDeg(glm::vec3(0, currentFrame * 60.0f, 0));
-		cubeModel.updateMatrix();
-
-		shader.use();
-		shader.setMat4("projection", perspective);
-		shader.setMat4("view", camera.GetViewMatrix());
-		shader.setVec3("lightPos", lightPos);
-		shader.setVec3("viewPos", lightPos);
-		shader.setVec3("objectColor", glm::vec3(1.0f, 0, 0));
-		shader.setVec3("lightColor", glm::vec3(1.0f));
-
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		cubeModel.Draw(shader);
-	
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		//glDrawElements(GL_TRIANGLES, pMesh->elementList.size(), GL_UNSIGNED_INT, 0);
+		glm::mat4 perspective = glm::mat4(1.0f);
+		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / std::max(static_cast<float>(SCR_HEIGHT), 1.0f), 0.1f, 200.0f);
+
+		shader.use();
+		shader.setMat4("projection", perspective);
+		shader.setMat4("view", camera.GetViewMatrix());
+		myModel.draw(shader);
+
+		GLenum err = glGetError();
+		if (err > 0)
+			std::cout << err << "\n";
+
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

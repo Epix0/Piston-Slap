@@ -1,42 +1,36 @@
 #pragma once
 #include <vector>
-#include <string>
 #include <glad/glad.h>
-#include <glm/glm.hpp>
 #include "ShaderProgram.h"
+#include "glm/glm.hpp"
+#include "Texture.h"
 
-using std::string, std::vector;
+/* Mesh contains the vertex data which makes up its shape and texture placement (texcoords).
+* The current data uses triangulated primitives for its position.
+* Uses: Texture
+*/
 
 struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Normal;
 	glm::vec2 TexCoords;
-
-	Vertex() = default;
 };
-
-struct Texture {
-	unsigned int id;
-	string type;
-	string path;
-};
-
 
 class Mesh {
 public:
-	Mesh(): VAO(0) {
-	}
+	Mesh() : VAO(0), mTexture(nullptr) {};
 
-	void PrepareForGL();
+	void prepareForGL();
 
 	// Shader should be active already.
 	// @shader is passed so that mesh-specific textures are set to their uniforms accordingly
-	void Draw(ShaderProgram& shader) const;
-	// Comprised of all the data used in the VBO
-	vector<Vertex> mVertexData;
-	vector<GLuint> mElements;
-	vector<Texture> mTextureData;
-	
+	void draw(ShaderProgram& shader) const;
+	// Comprised of all the data used in the VBO. See struct Vertex
+	std::vector<Vertex> mVertices;
+	// An array of indices used to index mVertices
+	std::vector<GLuint> mElements;
+	// Only loading diffuse maps sooo one member lol
+	Texture* mTexture;
 private:
 	GLuint VAO;
 };

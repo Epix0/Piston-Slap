@@ -3,7 +3,6 @@
 #include "ShaderProgram.h"
 #include <string>
 #include <vector>
-#include "assimp/material.h"
 #include "glad/glad.h"
 #include "glm/fwd.hpp"
 
@@ -13,49 +12,50 @@ class Model {
 public:
 	friend class CustomModelImporter;
 	Model(const string& modelName = string("Unnamed_Model"))
-		: directory(""), mName(modelName), mWorldPos(0), mWorldOrientation(0), mScale(1.0f), mWorldMatrix(1.0f) {};
+		: mName(modelName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f) {};
 	
-	// MEMBERS
-	
-	string directory;
-	vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-	
-	// FUNCTIONS
+	~Model() = default;
 
 	// @shader should be activated/used() prior to this call.
 	// This function is only concerned with getting the Model on the screen and translated from World space.
 	// View, Projection and other uniforms should be set prior to this call.
-	void Draw(ShaderProgram& shader) const;
+	void draw(ShaderProgram& shader) const;
 
 	void setPos(glm::vec3 newPos);
 
-	// Pushes position and rotation properties to final render matrix
-	void updateMatrix();
+	// Updates mWorldTransform of model's position, scale, and rotation.
+	// Intended to be called at the end of all transform-related updates.
+	void pushTransformUpdate();
 
-	// @newOrientation is in Euler angles format in DEGREES
+	// @newOrientation is in Euler angles DEGREES
 	// Ensure to call updateMatrix() to finalize this update
 	void setOrientationDeg(glm::vec3 newOrientation);
 
-	// @newOrientation is in Euler angles format in RADIANS
+	// @newOrientation is in Euler angles RADIANS
 	// Ensure to call updateMatrix() to finalize this update
 	void setOrientationRad(glm::vec3 newOrientation);
 
-	glm::vec3 getPos() const;
+	inline glm::vec3 getPos() const { return mWorldPos; }
+	inline glm::vec3 getOrientation() const { return mWorldOrientation; }
+	inline glm::vec3 getScale() const { return mScale; }
+	inline size_t getMeshCount() const { return mMeshes.size(); }
 
-	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
-
-	std::vector<Mesh> mMeshes;
-private:
-	// Vector of all the Meshes that make up this model.
+	// Technical alias, though not a friendly identifier at times
 	std::string mName;
+private:
+	// A matrix with the World identity comprised of Model's scale, position, and rotation.
+	// Written to when updateMatrix() is called
+	glm::mat4 mWorldTransform;
+
+	// XYZ placement relative to world
 	glm::vec3 mWorldPos;
 
-	// each component will already be in radians
+	// Euler angles in radians
 	glm::vec3 mWorldOrientation;
+	
+	// XYZ model scale
 	glm::vec3 mScale;
 
-	// Written to when updateMatrix() is called
-	glm::mat4 mWorldMatrix;
-
-	GLuint TextureFromFile(const char* path, const string& directory, bool gamma = false);
+	// Model's Meshes
+	std::vector<Mesh> mMeshes;
 };

@@ -18,11 +18,12 @@ public:
 	typedef shared_ptr<World> WorldInstance;
 
 	World() : mWorldIdentity(1.0f) {
-		#if TRACKING_WORLD_INSTANCES
+
+
 			if (++_worldInstances > 1) {
 				cout << "[TRACKING_WORLD_INSTANCES]: Heads up! More than one World instance was constructed. getWorld() will NOT return this recent instance.\n";
 			}
-		#endif
+
 	};
 
 	static shared_ptr<World> getWorld();
