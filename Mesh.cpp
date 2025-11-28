@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-constexpr GLuint totalVertexAttributes = 3;
+constexpr GLuint totalVertexAttributes = 4;
 constexpr void* ptrZero = 0;
 
 void Mesh::prepareForGL() {
@@ -24,10 +24,11 @@ void Mesh::prepareForGL() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mElements.size(), mElements.data(), GL_STATIC_DRAW);
 
-	// Position, Normal, TexCoords
+	// Position, Normal, TexCoords, Color
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), ptrZero);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Color));
 
 	for (GLuint i = 0; i < totalVertexAttributes; ++i) {
 		glEnableVertexAttribArray(i);

@@ -1,10 +1,9 @@
 #include "CustomIModelImporter.h"
 #include <string>
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include <iostream>
 #include <filesystem>
-#include <mutex>
 #include "assimp/Importer.hpp"
 #include "assimp/mesh.h"
 #include "glm/fwd.hpp"
@@ -13,12 +12,28 @@
 
 using std::string;
 
-void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfModel) const {
+// post proc flags
+constexpr unsigned int cPostProcFlags =
+aiProcess_JoinIdenticalVertices |
+aiProcess_Triangulate |
+aiProcess_OptimizeMeshes |
+aiProcess_PreTransformVertices;
+
+// Quick note: processVertices() handles the texture coords. This function handles the import of pixel data
+
+void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
+    
+}
+
+// Currently handles: Positions, Normals, TexCoords, MaterialColors
+void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
     meshOfModel.mVertices.reserve(sceneMesh.mNumVertices);
 
+    // Vars used for potential nullptr values
     // TexCoords. While the iteration len is mNumVertices, only the first (0) set is used
-    auto ptrTexCoordsArray = sceneMesh.mTextureCoords[0]; // the first set only
-    
+    auto ptrTexCoordsArray = sceneMesh.mTextureCoords[1];
+    auto ptrColor = sceneMesh.mColors[0];
+
     for (unsigned int vertexIndex = 0; vertexIndex < sceneMesh.mNumVertices; ++vertexIndex)
     {
         Vertex vertex;
@@ -28,18 +43,23 @@ void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfM
         vertex.Position = glm::vec3(positionVertex.x, positionVertex.y, positionVertex.z);
         vertex.Normal = glm::vec3(normal.x, normal.y, normal.z);
 
-        // TexCoords is an array itself, check if there's validation first
-        if (ptrTexCoordsArray)
-        {
+        // TexCoords and Colors may not exist. Guard clauses are set
+
+        // TexCoords
+        if (ptrTexCoordsArray) {
             auto& uvCoords = ptrTexCoordsArray[vertexIndex];
             vertex.TexCoords = glm::vec2(uvCoords.x, uvCoords.y);
-        }
-        else
-        {
+        } else {
             vertex.TexCoords = glm::vec2(0);
         }
-        // DONE with Vertex
 
+        // Color
+        auto material = scene->mMaterials[sceneMesh.mMaterialIndex];
+        aiColor3D aiColor(0.f, 0.f, 0.f);
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
+        vertex.Color = glm::vec3(aiColor.r, aiColor.g, aiColor.b);
+
+        // DONE with Vertex
         meshOfModel.mVertices.push_back(vertex);
     }
 }
@@ -59,18 +79,18 @@ void CustomModelImporter::proccessElements(const aiMesh& sceneMesh, Mesh& meshOf
     }
 }
 
-void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentModel) const {
+void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentModel, const aiScene* scene) const {
     // This is my mesh
     Mesh& meshOfModel = parentModel.mMeshes.emplace_back();
 
-    processVertices(sceneMesh, meshOfModel);
+    processVertices(sceneMesh, meshOfModel, scene);
     proccessElements(sceneMesh, meshOfModel);
     meshOfModel.prepareForGL();
 }
 
 void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& model, const aiScene* scene) const {
     for (unsigned int meshIndex = 0; meshIndex < node->mNumMeshes; ++meshIndex) {
-        processAIMesh(*scene->mMeshes[node->mMeshes[meshIndex]], model);
+        processAIMesh(*scene->mMeshes[node->mMeshes[meshIndex]], model, scene);
     }
 
     if (node->mNumChildren > 0) {
@@ -92,14 +112,7 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
     // Create an instance of the Importer class
     Assimp::Importer importer;
 
-    // And have it read the given file with some example postprocessing
-    // Usually - if speed is not the most important aspect for you - you'll
-    // probably to request more postprocessing than we do in this example.
-    const aiScene* scene = importer.ReadFile(pFile,
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_Triangulate| 
-        aiProcess_OptimizeMeshes|
-        aiProcess_PreTransformVertices);
+    const aiScene* scene = importer.ReadFile(pFile, cPostProcFlags);
 
     // If the import failed, report it
     if (nullptr == scene) {
@@ -107,9 +120,8 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
         return false;
     }
 
-    // Now we can access the file's contents.
     processScene(scene, std::filesystem::path(pFile).filename().string());
 
-   // We're done. Everything will be cleaned up by the importer destructor
+   // Everything will be cleaned up by the importer destructor
     return true;
 }
