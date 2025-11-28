@@ -25,9 +25,9 @@ void Mesh::prepareForGL() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mElements.size(), mElements.data(), GL_STATIC_DRAW);
 
 	// Position, Normal, TexCoords, Color
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), ptrZero);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), ptrZero);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Color));
 
 	for (GLuint i = 0; i < totalVertexAttributes; ++i) {
@@ -38,12 +38,16 @@ void Mesh::prepareForGL() {
 }
 
 void Mesh::draw(ShaderProgram& shader) const {
-	glBindVertexArray(VAO);
-	//if (mTexture) {
-	//	mTexture->bind();
-	//	shader.setInt("texturethang", mTexture->getAssignedTextureSlot());
-	//}
 
+	if (mTexture) {
+		shader.setBool("hasTex", true);
+		shader.setInt("texSlot", mTexture->getAssignedTextureSlot());
+		shader.setIntArray("texturethang", mTexture->getAssignedTextureSlot(), mTexture->getAssignedTextureSlot());
+		mTexture->bind();
+	} else
+		shader.setBool("hasTex", false);
+
+	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mElements.size()), GL_UNSIGNED_INT, ptrZero);
 	//glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(0);

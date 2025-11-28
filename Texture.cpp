@@ -7,9 +7,9 @@
 #include <iostream>
 
 static int sTextureSlot = 0;
-constexpr int cDesiredColorChannels = 4; // All textures shall be outputted with RGBA channels
+constexpr int cDesiredColorChannels = 3; // All textures shall be outputted with RGB channels
 
-Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextureId(0) {
+Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextureId(0), mVertexIndex(0) {
 	int width = 0;
 	int height = 0;
 	int channels = 0;
@@ -22,20 +22,22 @@ Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextur
 		return;
 	}
 
+	std::cout << "Loaded " << filename << "\n";
+
 	glGenTextures(1, &mTextureId);
 	glActiveTexture(GL_TEXTURE0 + sTextureSlot);
 	mSlotNum = sTextureSlot;
+	mVertexIndex = sTextureSlot;
 	bind();
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, mBitData);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, mBitData);
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 	
 	++sTextureSlot;
 };
-
 
 Texture::~Texture() {
 	if (mTextureId != 0)
@@ -43,7 +45,7 @@ Texture::~Texture() {
 }
 
 void Texture::bind() const {
-	glBindTexture(GL_TEXTURE_2D, mTextureId);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, mTextureId);
 }
 
 int Texture::getAssignedTextureSlot() const {

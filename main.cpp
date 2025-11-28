@@ -63,6 +63,7 @@ int main() {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWwindow* window = glfwCreateWindow(640, 480, "PRERELEASE PistonSlap: Rendering", NULL, NULL);
 	
 	glfwMakeContextCurrent(window);
@@ -79,7 +80,6 @@ int main() {
 	shader.use();
 	// Shader config
 	stbi_set_flip_vertically_on_load(true);
-
 
 	auto pImporter = std::make_unique<CustomModelImporter>();
 	pImporter->ImportModelFile(Directory::Models + "car/car.fbx");

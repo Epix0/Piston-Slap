@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "glm/fwd.hpp"
 #include <ios>
 #include <string>
@@ -96,6 +97,10 @@ void ShaderProgram::setBool(const std::string& name, bool value) const
 void ShaderProgram::setInt(const std::string& name, int value) const
 {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+}
+void ShaderProgram::setIntArray(const std::string& name, int key, int value) const {
+    std::string finalName = name + "[" + std::to_string(key) + "]";
+    glUniform1i(glGetUniformLocation(ID, finalName.c_str()), value);
 }
 void ShaderProgram::setFloat(const std::string& name, float value) const
 {

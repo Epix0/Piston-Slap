@@ -12,10 +12,15 @@ public:
 
 	void bind() const;
 
+	inline unsigned int getGLTextureId() const { return mTextureId; }
+
 	int getAssignedTextureSlot() const;
 
 	// GL_TEXTURE[#]
 	int mSlotNum;
+
+	// Which vertex index this texture belongs to. Used with gl_VertexID
+	int mVertexIndex;
 private:
 	// The return ptr from stb_iamge
 	unsigned char* mBitData;
