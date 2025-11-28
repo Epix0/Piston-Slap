@@ -22,7 +22,17 @@ aiProcess_PreTransformVertices;
 // Quick note: processVertices() handles the texture coords. This function handles the import of pixel data
 
 void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
-    
+    auto& material = *scene->mMaterials[sceneMesh.mMaterialIndex];
+
+    if(material.GetTextureCount(aiTextureType_DIFFUSE) == 0)
+        return;
+
+    aiString path;
+    material.GetTexture(aiTextureType_DIFFUSE, sceneMesh.mMaterialIndex, &path);
+
+    std::cout << path.C_Str() << "\n";
+
+    //meshOfModel.mTexture = std::make_unique<Texture>();
 }
 
 // Currently handles: Positions, Normals, TexCoords, MaterialColors
@@ -85,6 +95,7 @@ void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentMo
 
     processVertices(sceneMesh, meshOfModel, scene);
     proccessElements(sceneMesh, meshOfModel);
+
     meshOfModel.prepareForGL();
 }
 
