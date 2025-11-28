@@ -69,8 +69,7 @@ int main() {
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "ERR: Glad failed to init?\n";
 		return 43;
 	}
@@ -96,8 +95,8 @@ int main() {
 	glfwSwapInterval(1);
 
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glm::vec3 worldUp = glm::vec3(0, 1.0f, 0.0f);
 	Model& myModel = pImporter->mImportedModels[0];
@@ -128,8 +127,6 @@ int main() {
 		GLenum err = glGetError();
 		if (err > 0)
 			std::cout << err << "\n";
-
-
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

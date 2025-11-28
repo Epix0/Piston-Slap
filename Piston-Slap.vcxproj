@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CustomIModelImporter.cpp" />
+    <ClCompile Include="GLCall.cpp" />
     <ClCompile Include="InstanceService.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />

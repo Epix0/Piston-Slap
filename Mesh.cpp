@@ -43,7 +43,7 @@ void Mesh::draw(ShaderProgram& shader) const {
 	//	mTexture->bind();
 	//	shader.setInt("texturethang", mTexture->getAssignedTextureSlot());
 	//}
-	
+
 	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mElements.size()), GL_UNSIGNED_INT, ptrZero);
 	//glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(0);
