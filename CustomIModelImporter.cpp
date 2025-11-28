@@ -95,6 +95,7 @@ void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentMo
 
     processVertices(sceneMesh, meshOfModel, scene);
     proccessElements(sceneMesh, meshOfModel);
+    processTextures(sceneMesh, meshOfModel, scene);
 
     meshOfModel.prepareForGL();
 }
