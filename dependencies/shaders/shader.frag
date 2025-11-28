@@ -7,12 +7,12 @@ in vec2 TexCoords;
 in vec3 Color;
 
 uniform int texSlot;
-uniform sampler2DArray texturethang;
+uniform sampler2D texturethang[5];
 uniform bool hasTex;
 
 void main() {
     if (hasTex) {
-        FragColor = texture(texturethang, vec3(TexCoords.xy, texSlot));
+        FragColor = texture(texturethang[texSlot], TexCoords.xy);
     } else {
         FragColor = vec4(Color, 1.);
     }

@@ -29,12 +29,12 @@ Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextur
 	mSlotNum = sTextureSlot;
 	mVertexIndex = sTextureSlot;
 	bind();
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, mBitData);
-	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, mBitData);
+	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	++sTextureSlot;
 };
@@ -45,7 +45,7 @@ Texture::~Texture() {
 }
 
 void Texture::bind() const {
-	glBindTexture(GL_TEXTURE_2D_ARRAY, mTextureId);
+	glBindTexture(GL_TEXTURE_2D, mTextureId);
 }
 
 int Texture::getAssignedTextureSlot() const {

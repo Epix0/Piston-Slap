@@ -36,7 +36,7 @@ void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfM
 
     std::string strPath = aiPath.C_Str();
     std::string filename = strPath.substr(strPath.find_last_of("/\\") + 1);
-    
+   
     meshOfModel.mTexture = std::make_shared<Texture>(filename.c_str());
     if(meshOfModel.mTexture->getGLTextureId() == 0) {
         std::cout << "Skipping " << filename << "\n";
@@ -51,7 +51,7 @@ void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfM
 
     // Vars used for potential nullptr values
     // TexCoords. While the iteration len is mNumVertices, only the first (0) set is used
-    auto ptrTexCoordsArray = sceneMesh.mTextureCoords[1];
+    auto ptrTexCoordsArray = sceneMesh.mTextureCoords[0];
     auto ptrColor = sceneMesh.mColors[0];
 
     for (unsigned int vertexIndex = 0; vertexIndex < sceneMesh.mNumVertices; ++vertexIndex)
@@ -68,8 +68,9 @@ void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfM
         // TexCoords
         if (ptrTexCoordsArray) {
             auto& uvCoords = ptrTexCoordsArray[vertexIndex];
-            std::cout << uvCoords.x << " " << uvCoords.y << "\n";
+
             vertex.TexCoords = glm::vec2(uvCoords.x, uvCoords.y);
+    
         } else {
             vertex.TexCoords = glm::vec2(0);
         }
