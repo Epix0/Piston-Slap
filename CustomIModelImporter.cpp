@@ -105,6 +105,8 @@ void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentMo
     // This is my mesh
     Mesh& meshOfModel = parentModel.mMeshes.emplace_back();
 
+
+
     processVertices(sceneMesh, meshOfModel, scene);
     proccessElements(sceneMesh, meshOfModel);
     processTextures(sceneMesh, meshOfModel, scene);

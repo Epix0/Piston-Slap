@@ -7,7 +7,7 @@
 #include <iostream>
 
 static int sTextureSlot = 0;
-constexpr int cDesiredColorChannels = 3; // All textures shall be outputted with RGB channels
+constexpr int cDesiredColorChannels = 4; // All textures shall be outputted with RGB channels
 
 Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextureId(0), mVertexIndex(0) {
 	int width = 0;
@@ -33,7 +33,7 @@ Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextur
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, mBitData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, mBitData);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	++sTextureSlot;
