@@ -6,9 +6,13 @@
 #include <filesystem>
 #include "assimp/Importer.hpp"
 #include "assimp/mesh.h"
-#include "glm/fwd.hpp"
+#include "glm/glm.hpp"
 #include "Mesh.h"
 #include "Model.h"
+#include "Texture.h"
+#include "assimp/material.h"
+#include "assimp/types.h"
+#include <memory>
 
 using std::string;
 
@@ -24,15 +28,16 @@ aiProcess_PreTransformVertices;
 void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
     auto& material = *scene->mMaterials[sceneMesh.mMaterialIndex];
 
-    if(material.GetTextureCount(aiTextureType_DIFFUSE) == 0)
+    if (material.GetTextureCount(aiTextureType_DIFFUSE) == 0)
         return;
 
-    aiString path;
-    material.GetTexture(aiTextureType_DIFFUSE, sceneMesh.mMaterialIndex, &path);
+    aiString aiPath;
+    material.GetTexture(aiTextureType_DIFFUSE, 0, &aiPath); // index = 0 :: ONLY taking the first texture set
 
-    std::cout << path.C_Str() << "\n";
-
-    //meshOfModel.mTexture = std::make_unique<Texture>();
+    std::string strPath = aiPath.C_Str();
+    std::string filename = strPath.substr(strPath.find_last_of("/\\") + 1);
+    
+    meshOfModel.mTexture = std::make_shared<Texture>(filename.c_str());
 }
 
 // Currently handles: Positions, Normals, TexCoords, MaterialColors
