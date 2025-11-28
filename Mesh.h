@@ -4,6 +4,7 @@
 #include "ShaderProgram.h"
 #include "glm/glm.hpp"
 #include "Texture.h"
+#include <memory>
 
 /* Mesh contains the vertex data which makes up its shape and texture placement (texcoords).
 * The current data uses triangulated primitives for its position.
@@ -19,7 +20,7 @@ struct Vertex {
 
 class Mesh {
 public:
-	Mesh() : VAO(0), mTexture(nullptr) {};
+	Mesh() : VAO(0) {};
 
 	void prepareForGL();
 
@@ -31,7 +32,7 @@ public:
 	// An array of indices used to index mVertices
 	std::vector<GLuint> mElements;
 	// Only loading diffuse maps sooo one member lol
-	Texture* mTexture;
+	std::shared_ptr<Texture> mTexture;
 private:
 	GLuint VAO;
 };
