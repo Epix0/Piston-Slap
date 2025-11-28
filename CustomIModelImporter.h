@@ -17,9 +17,6 @@ public:
 private:
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
 
-	// The beginning of material handling...
-	void processMaterials(const aiMesh* sceneMesh, Mesh* meshOfModel, const aiScene* scene) const;
-
 	// The beginning of texture handling...
 	void processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const;
 
