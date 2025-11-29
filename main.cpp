@@ -59,25 +59,26 @@ static void error_callback(int error, const char* description)
 }
 
 static void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter);
- 
+static GLFWwindow* createWindow();
+static void congifureWindow(GLFWwindow*& window);
+static void loadGLWrangler();
+static void configureGL();
+static void configureVendor();
+
 int main(int argsC, char* argsV[]) {
-	if (!glfwInit()) {
-		exit(EXIT_FAILURE);
-	}
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(640, 480, "PRERELEASE PistonSlap: Rendering", NULL, NULL);
+	GLFWwindow* window = createWindow();
 	
-	glfwMakeContextCurrent(window);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	// Window hints and init config
+	congifureWindow(window);
+	
+	// Essential for having defs for gl calls
+	loadGLWrangler();
+	
+	// glEnable() calls and alike
+	configureGL();
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "ERR: Glad failed to init?\n";
-		return 43;
-	}
+	// stuff like stb image
+	configureVendor();
 
 	std::cout << "Piston Slap: Renderer. Currently, all models should be relative to models/\n";
 
@@ -93,22 +94,6 @@ int main(int argsC, char* argsV[]) {
 
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
-	// Shader config
-	stbi_set_flip_vertically_on_load(true);
-
-
-	if (!window) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-
-	glfwMakeContextCurrent(window);
-	gladLoadGL();
-	glfwSwapInterval(1);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -140,6 +125,8 @@ int main(int argsC, char* argsV[]) {
 		glfwPollEvents();
 	}
 
+	glfwTerminate();
+	window = nullptr;
 	std::cout << "Piston Slap Renderer closed successfully\n";
 	return 0;
 }
@@ -212,4 +199,40 @@ void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> p
 		else
 			break;
 	}
+}
+
+GLFWwindow* createWindow() {
+	if(!glfwInit()) {
+		exit(EXIT_FAILURE);
+	}
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	GLFWwindow* window = glfwCreateWindow(640, 640, "PRERELEASE PistonSlap: Rendering", nullptr, nullptr);
+	glfwMakeContextCurrent(window);
+	return window;
+}
+
+void congifureWindow(GLFWwindow*& window) {
+	glfwSwapInterval(1);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void loadGLWrangler() {
+	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cout << "ERR: Glad failed to init?\n";
+	}
+
+	gladLoadGL();
+}
+
+void configureGL() {
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void configureVendor() {
+	stbi_set_flip_vertically_on_load(true);
 }
