@@ -8,11 +8,13 @@
 constexpr GLuint totalVertexAttributes = 4;
 constexpr void* ptrZero = 0;
 
-void Mesh::prepareForGL() {
-	// Retaining references to any handle other than the VAO is currently not needed
+Mesh::~Mesh() {
+	glDeleteBuffers(1, &VAO);
+	glDeleteBuffers(1, &EBO);
+	glDeleteBuffers(1, &VBO);
+}
 
-	GLuint EBO, VBO = 0;
-	
+void Mesh::prepareForGL() {
 	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);

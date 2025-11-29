@@ -20,7 +20,9 @@ struct Vertex {
 
 class Mesh {
 public:
-	Mesh() : VAO(0) {};
+	Mesh() : VAO(0), VBO(0), EBO(0) {};
+
+	~Mesh();
 
 	void prepareForGL();
 
@@ -34,5 +36,5 @@ public:
 	// Only loading diffuse maps sooo one member lol
 	std::shared_ptr<Texture> mTexture;
 private:
-	GLuint VAO;
+	GLuint VAO, VBO, EBO;
 };
