@@ -65,7 +65,6 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-    // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
    inline void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
         if (direction == FORWARD)
@@ -112,8 +111,8 @@ public:
             Zoom = 45.0f;
     }
 
-   inline void attachToPlayer(Player* player) {
-       mAttachedPlayer = player;
+   inline void attachToPlayer(std::shared_ptr<Player> pPlayer) {
+       mAttachedPlayer = pPlayer;
    }
 
 private:
@@ -131,5 +130,5 @@ private:
         Up = glm::normalize(glm::cross(Right, Front));
     }
 
-    Player* mAttachedPlayer;
+    std::shared_ptr<Player> mAttachedPlayer;
 };
