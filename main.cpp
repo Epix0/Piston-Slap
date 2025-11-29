@@ -21,6 +21,8 @@ extern "C" {
 #include "ShaderProgram.h"
 #include "Camera.hpp"
 #include "CustomIModelImporter.h"
+#include <memory>
+#include "Model.h"
 
 // app settings
 int SCR_WIDTH = 800;
@@ -49,14 +51,16 @@ float lastFrame = 0.0f;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, std::shared_ptr<CustomModelImporter> pImporter, Model& model);
 
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
 }
 
-int main() {
+static void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter);
+ 
+int main(int argsC, char* argsV[]) {
 	if (!glfwInit()) {
 		exit(EXIT_FAILURE);
 	}
@@ -75,17 +79,25 @@ int main() {
 		return 43;
 	}
 
-	
+	std::cout << "Piston Slap: Renderer. Currently, all models should be relative to models/\n";
+
+	auto pImporter = std::make_shared<CustomModelImporter>();
+	// TODO do a init bulk import
+	std::string entryModelName = "";
+
+	grabModelInput(entryModelName, pImporter);
+
+	std::cout << "Loading model [" << entryModelName << "]" << "\n";
+	Model& model = pImporter->mImportedModels.begin()->second;
+	glfwFocusWindow(window);
+
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
 	// Shader config
 	stbi_set_flip_vertically_on_load(true);
 
-	auto pImporter = std::make_unique<CustomModelImporter>();
-	pImporter->ImportModelFile(Directory::Models + "car/car.fbx");
-	
-	if (!window)
-	{
+
+	if (!window) {
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -98,19 +110,13 @@ int main() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glm::vec3 worldUp = glm::vec3(0, 1.0f, 0.0f);
-	Model& myModel = pImporter->mImportedModels[0];
-
-	myModel.setPos(glm::vec3(0, 0, 0));
-	myModel.pushTransformUpdate();
-
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		processInput(window);
+		processInput(window, pImporter, model);
 		
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
@@ -122,7 +128,9 @@ int main() {
 		shader.use();
 		shader.setMat4("projection", perspective);
 		shader.setMat4("view", camera.GetViewMatrix());
-		myModel.draw(shader);
+		shader.setVec3("viewPos", camera.Position);
+
+		model.draw(shader);
 
 		GLenum err = glGetError();
 		if (err > 0)
@@ -132,6 +140,7 @@ int main() {
 		glfwPollEvents();
 	}
 
+	std::cout << "Piston Slap Renderer closed successfully\n";
 	return 0;
 }
 
@@ -156,11 +165,24 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, std::shared_ptr<CustomModelImporter> pImporter, Model& model)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
+	// go back to console input
+	if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+		glfwIconifyWindow(window);
+		pImporter->mImportedModels.clear();
+		std::string modelName; 
+		grabModelInput(modelName, pImporter);
+		model.~Model();
+		model = pImporter->mImportedModels.begin()->second;
+		glfwRestoreWindow(window);
+		glfwFocusWindow(window);
+	}
+
+	// noclip mode
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -169,7 +191,25 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		camera.ProcessKeyboard(UP, deltaTime);
+	if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		camera.ProcessKeyboard(DOWN, deltaTime);
 	
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		lightPos = camera.Position;
+	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS
+}
+
+void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter) {
+	while(nameVar.empty()) {
+		std::cout << "Enter a model name followed by the extension\n";
+		std::cin >> nameVar;
+
+		if(nameVar.empty())
+			continue;
+
+		if(!pImporter->ImportModelFile(Directory::Models + nameVar))
+			nameVar.clear();
+		else
+			break;
+	}
 }
