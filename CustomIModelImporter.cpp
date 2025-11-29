@@ -28,11 +28,14 @@ aiProcess_PreTransformVertices;
 void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
     auto& material = *scene->mMaterials[sceneMesh.mMaterialIndex];
 
-    if (material.GetTextureCount(aiTextureType_DIFFUSE) == 0)
-        return;
+    aiTextureType textureType = aiTextureType_NONE;
+    
+    if(material.GetTextureCount(aiTextureType_DIFFUSE) > 0)
+        textureType = aiTextureType_DIFFUSE;
+    else return;
 
     aiString aiPath;
-    material.GetTexture(aiTextureType_DIFFUSE, 0, &aiPath); // index = 0 :: ONLY taking the first texture set
+    material.GetTexture(textureType, 0, &aiPath); // index = 0 :: ONLY taking the first texture set
 
     std::string strPath = aiPath.C_Str();
     std::string filename = strPath.substr(strPath.find_last_of("/\\") + 1);
@@ -104,8 +107,6 @@ void CustomModelImporter::proccessElements(const aiMesh& sceneMesh, Mesh& meshOf
 void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentModel, const aiScene* scene) const {
     // This is my mesh
     Mesh& meshOfModel = parentModel.mMeshes.emplace_back();
-
-
 
     processVertices(sceneMesh, meshOfModel, scene);
     proccessElements(sceneMesh, meshOfModel);
