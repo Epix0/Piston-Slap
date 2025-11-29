@@ -12,7 +12,10 @@ uniform bool hasTex;
 
 void main() {
     if (hasTex) {
-        FragColor = texture(texturethang[texSlot], TexCoords.xy);
+        vec4 texColor = texture(texturethang[texSlot], TexCoords.xy);
+        if (texColor.a < 0.1)
+            discard;
+        FragColor = texColor;
     } else {
         FragColor = vec4(Color, 1.);
     }
