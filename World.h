@@ -17,10 +17,6 @@ class World {
 	static int _worldInstances;
 #endif
 public:
-	struct Instance {
-		
-	};
-
 	typedef shared_ptr<World> WorldInstance;
 
 	World() : mWorldIdentity(1.0f) {
