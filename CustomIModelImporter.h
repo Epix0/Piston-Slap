@@ -15,8 +15,8 @@ public:
 
 	Model& getModel(const std::string& modelName);
 
-private:
 	std::map<std::string, Model> mImportedModels;
+private:
 
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
 
