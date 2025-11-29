@@ -11,7 +11,7 @@ public:
 
 	void setScale(const glm::vec3& scale);
 
-	void setPos(glm::vec3 newPos);
+	void setPos(const glm::vec3& newPos);
 
 	// Updates mWorldTransform of model's position, scale, and rotation.
 	// Intended to be called at the end of all transform-related updates.

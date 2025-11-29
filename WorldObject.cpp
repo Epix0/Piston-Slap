@@ -15,7 +15,7 @@ void WorldObject::setScale(const glm::vec3& scale) {
 	mScale = scale;
 }
 
-void WorldObject::setPos(glm::vec3 newPos) {
+void WorldObject::setPos(const glm::vec3& newPos) {
 	mWorldPos = newPos;
 }
 
