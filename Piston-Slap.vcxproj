@@ -151,6 +151,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="vendor-source\glad.c" />
     <ClCompile Include="World.cpp" />
+    <ClCompile Include="WorldObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="World.h" />
+    <ClInclude Include="WorldObject.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dependencies\glfw3.dll" />
