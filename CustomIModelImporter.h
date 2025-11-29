@@ -3,18 +3,21 @@
 #include "assimp/mesh.h"
 #include "assimp/scene.h"
 #include <string>
-#include <vector>
 #include "Mesh.h"
+#include <map>
 
 class CustomModelImporter {
 public:
-	CustomModelImporter(): numOfVertices(0), sizeSortedBuffer(0) {};
+	CustomModelImporter(): numOfVertices(0) {};
 	unsigned int numOfVertices;
-	size_t sizeSortedBuffer;
 
 	bool ImportModelFile(const std::string& pFile);
-	std::vector<Model> mImportedModels;
+
+	Model& getModel(const std::string& modelName);
+
 private:
+	std::map<std::string, Model> mImportedModels;
+
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
 
 	// The beginning of texture handling...
@@ -34,5 +37,5 @@ private:
 	void processNodeRecursively(const aiNode* node, Model& model, const aiScene* scene) const;
 
 	// Main entry point for multi-phased processesing
-	void processScene(const aiScene* scene, std::string&& modelName);
+	void processScene(const aiScene* scene, const std::string& modelName);
 };

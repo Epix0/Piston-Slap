@@ -13,8 +13,8 @@
 #include "assimp/material.h"
 #include "assimp/types.h"
 #include <memory>
-
-using std::string;
+#include <list>
+#include <utility>
 
 // post proc flags
 constexpr unsigned int cPostProcFlags =
@@ -127,8 +127,9 @@ void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& mode
     }
 }
 
-void CustomModelImporter::processScene(const aiScene* scene, std::string&& modelName) {
-    Model& model = mImportedModels.emplace_back();
+void CustomModelImporter::processScene(const aiScene* scene, const std::string& modelName) {
+    Model& model = mImportedModels[modelName];
+    
     model.mName = modelName;
     model.mMeshes.reserve(scene->mNumMeshes);
 
@@ -139,6 +140,21 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
     // Create an instance of the Importer class
     Assimp::Importer importer;
 
+    std::filesystem::path fileSysPath(pFile);
+   
+    try {
+        if(!fileSysPath.has_extension())
+            throw("[" + pFile + "] cannot deduce file type. Tossing.\n");
+
+        if(fileSysPath.extension() == ".fbx") {
+            throw("[" + pFile + "] uses an unsupported format. Consider converting to GLTF/GLB. Tossing.\n");
+        }
+
+    }  catch(const std::string& msg) {
+        std::cout << msg;
+        return false;
+    }
+
     const aiScene* scene = importer.ReadFile(pFile, cPostProcFlags);
 
     // If the import failed, report it
@@ -147,8 +163,20 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
         return false;
     }
 
-    processScene(scene, std::filesystem::path(pFile).filename().string());
+    processScene(scene, fileSysPath.filename().stem().string());
 
    // Everything will be cleaned up by the importer destructor
     return true;
+}
+
+// By using the getter for Models, hopefully the app can stop crashing if a model file wasn't located
+
+Model& CustomModelImporter::getModel(const std::string& modelName) {
+    auto search = mImportedModels.find(modelName);
+    if(search != mImportedModels.end())
+        return search->second;
+    else {
+        std::cout << "[" << modelName << "] was not found.\n";
+        return mImportedModels["unnamed_map" + std::to_string(mImportedModels.size())];
+    }
 }
