@@ -7,6 +7,10 @@ class WorldObject {
 public:
 	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f) {}
 
+	void setScale(float scalar);
+
+	void setScale(const glm::vec3& scale);
+
 	void setPos(glm::vec3 newPos);
 
 	// Updates mWorldTransform of model's position, scale, and rotation.
