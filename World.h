@@ -2,6 +2,8 @@
 #include "glm/glm.hpp"
 #include <memory>
 #include <iostream>
+#include "Model.h"
+#include "WorldObject.h"
 
 using std::shared_ptr, std::cout;
 
@@ -15,21 +17,25 @@ class World {
 	static int _worldInstances;
 #endif
 public:
+	struct Instance {
+		
+	};
+
 	typedef shared_ptr<World> WorldInstance;
 
 	World() : mWorldIdentity(1.0f) {
-
-
-			if (++_worldInstances > 1) {
-				cout << "[TRACKING_WORLD_INSTANCES]: Heads up! More than one World instance was constructed. getWorld() will NOT return this recent instance.\n";
-			}
-
+		if (++_worldInstances > 1) {
+			cout << "[TRACKING_WORLD_INSTANCES]: Heads up! More than one World instance was constructed. getWorld() will NOT return this recent instance.\n";
+		}
 	};
 
 	static shared_ptr<World> getWorld();
+
 	void translateWorldBy(glm::vec3& newPos);
 
 	glm::mat4 getWorldMatrix();
+
+
 private:
 	static std::shared_ptr<World> worldInstance;
 	glm::mat4 mWorldIdentity;

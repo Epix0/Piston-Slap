@@ -5,7 +5,6 @@
 
 class WorldObject {
 public:
-	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f) {}
 
 	void setScale(float scalar);
 
@@ -45,5 +44,9 @@ private:
 
 	// XYZ model scale
 	glm::vec3 mScale;
+
+protected:
+	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f) {}
+	~WorldObject() = default;
 };
 

@@ -48,7 +48,7 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stb_image.cpp">
+    <ClCompile Include="vendor-source/stb_image.cpp">
       <Filter>Source Files\Vendor</Filter>
     </ClCompile>
     <ClCompile Include="WorldObject.cpp">

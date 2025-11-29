@@ -20,7 +20,7 @@ void main() {
     // Diffuse related
     const vec3 lightPos = vec3(1.f); // convert to uniform later
     const vec3 lightColor = vec3(1.f); // convert to uniform later
-    const float ambientStrength = 0.2f; // strength of raw object color without any diffuse light on it
+    const float ambientStrength = 0.5f; // strength of raw object color without any diffuse light on it
 
     // Specular related
     const float specularStrength = 0.8f;

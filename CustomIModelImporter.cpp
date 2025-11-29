@@ -18,6 +18,7 @@
 
 // post proc flags
 constexpr unsigned int cPostProcFlags =
+
 aiProcess_JoinIdenticalVertices |
 aiProcess_Triangulate |
 aiProcess_OptimizeMeshes |
@@ -29,7 +30,7 @@ void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfM
     auto& material = *scene->mMaterials[sceneMesh.mMaterialIndex];
 
     aiTextureType textureType = aiTextureType_NONE;
-    
+
     if(material.GetTextureCount(aiTextureType_DIFFUSE) > 0)
         textureType = aiTextureType_DIFFUSE;
     else return;
