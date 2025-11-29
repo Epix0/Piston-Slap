@@ -4,14 +4,21 @@
 #include <string>
 #include <vector>
 #include "WorldObject.h"
+#include <iostream>
 
 using std::string, std::vector;
 
 class Model : public WorldObject {
 public:
 	friend class CustomModelImporter;
-	Model(const string& modelName = string("Unnamed_Model")) {};
+	Model(const string& modelName = string("Unnamed_Model")) {
+		mName = modelName;
+	};
 	
+	Model(const Model&) {
+		std::cout << "Model copied\n";
+	}
+
 	~Model() = default;
 
 	// @shader should be activated/used() prior to this call.
