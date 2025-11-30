@@ -18,9 +18,12 @@ enum Camera_Movement {
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 3.5f;
+const float SPEED = 0.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
+
+// timing bs
+float totalDelta = 0.f;
 
 class Camera
 {
@@ -67,6 +70,9 @@ public:
 
    inline void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
+        float yComp = Position.y;
+  
+
         if (direction == FORWARD)
             Position += Front * velocity;
         if (direction == BACKWARD)
@@ -79,6 +85,8 @@ public:
             Position -= Up * velocity;
         if(direction == DOWN)
             Position += Up * velocity;
+        
+        Position.y = yComp;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.

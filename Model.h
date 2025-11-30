@@ -3,17 +3,15 @@
 #include "ShaderProgram.h"
 #include <string>
 #include <vector>
-#include "WorldObject.h"
 #include <iostream>
+#include "WorldObject.h"
 
 using std::string, std::vector;
 
 class Model : public WorldObject {
 public:
 	friend class CustomModelImporter;
-	Model(const string& modelName = string("Unnamed_Model")) {
-		mName = modelName;
-	};
+	Model() : mMeshes(0) {};
 	
 	Model(const Model&) {
 		std::cout << "Model copied\n";
@@ -26,7 +24,7 @@ public:
 	// View, Projection and other uniforms should be set prior to this call.
 	void draw(ShaderProgram& shader) const;
 		
-	inline size_t getMeshCount() const { return mMeshes.size(); }
+	inline size_t getMeshCount() const { return mMeshes.size(); };
 
 
 private:

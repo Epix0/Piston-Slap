@@ -9,11 +9,11 @@
 static int sTextureSlot = 0;
 constexpr int cDesiredColorChannels = 4; // All textures shall be outputted with RGB channels
 
-Texture::Texture(const char* filename) : mSlotNum(0), mBitData(nullptr), mTextureId(0), mVertexIndex(0) {
+Texture::Texture(const char* filename, const std::string& modelName) : mSlotNum(0), mBitData(nullptr), mTextureId(0), mVertexIndex(0) {
 	int width = 0;
 	int height = 0;
 	int channels = 0;
-	std::string finalPath = std::string("textures/") + std::string(filename);
+	std::string finalPath = std::string("textures/") + modelName + "/" + std::string(filename);
 	mBitData = stbi_load(finalPath.c_str(), &width, &height, &channels, cDesiredColorChannels);
 
 	if (!mBitData)

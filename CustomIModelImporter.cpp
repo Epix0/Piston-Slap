@@ -25,7 +25,7 @@ aiProcess_PreTransformVertices;
 
 // Quick note: processVertices() handles the texture coords. This function handles the import of pixel data
 
-void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
+void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene, const std::string& modelName) const {
     auto& material = *scene->mMaterials[sceneMesh.mMaterialIndex];
 
     aiTextureType textureType = aiTextureType_NONE;
@@ -40,7 +40,7 @@ void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfM
     std::string strPath = aiPath.C_Str();
     std::string filename = strPath.substr(strPath.find_last_of("/\\") + 1);
    
-    meshOfModel.mTexture = std::make_shared<Texture>(filename.c_str());
+    meshOfModel.mTexture = std::make_shared<Texture>(filename.c_str(), modelName);
     if(meshOfModel.mTexture->getGLTextureId() == 0) {
         std::cout << "Skipping " << filename << "\n";
         meshOfModel.mTexture.reset();
@@ -104,36 +104,34 @@ void CustomModelImporter::proccessElements(const aiMesh& sceneMesh, Mesh& meshOf
     }
 }
 
-void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentModel, const aiScene* scene) const {
+void CustomModelImporter::processAIMesh(const aiMesh& sceneMesh, Model& parentModel, const aiScene* scene, const std::string& modelName) const {
     // This is my mesh
     Mesh& meshOfModel = parentModel.mMeshes.emplace_back();
 
     processVertices(sceneMesh, meshOfModel, scene);
     proccessElements(sceneMesh, meshOfModel);
-    processTextures(sceneMesh, meshOfModel, scene);
+    processTextures(sceneMesh, meshOfModel, scene, modelName);
 
     meshOfModel.prepareForGL();
 }
 
-void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& model, const aiScene* scene) const {
+void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& model, const aiScene* scene, const std::string& modelName) const {
     for (unsigned int meshIndex = 0; meshIndex < node->mNumMeshes; ++meshIndex) {
-        processAIMesh(*scene->mMeshes[node->mMeshes[meshIndex]], model, scene);
+        processAIMesh(*scene->mMeshes[node->mMeshes[meshIndex]], model, scene, modelName);
     }
 
     if (node->mNumChildren > 0) {
         for (size_t i = 0; i < node->mNumChildren; ++i) {
-            processNodeRecursively(node->mChildren[i], model, scene);
+            processNodeRecursively(node->mChildren[i], model, scene, modelName);
         }
     }
 }
 
 void CustomModelImporter::processScene(const aiScene* scene, const std::string& modelName) {
     Model& model = mImportedModels[modelName];
-    
-    model.mName = modelName;
     model.mMeshes.reserve(scene->mNumMeshes);
 
-    processNodeRecursively(scene->mRootNode, model, scene);
+    processNodeRecursively(scene->mRootNode, model, scene, modelName);
 }
 
 bool CustomModelImporter::ImportModelFile(const std::filesystem::path& fileSysPath) {

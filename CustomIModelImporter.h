@@ -22,7 +22,7 @@ private:
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
 
 	// The beginning of texture handling...
-	void processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const;
+	void processTextures(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene, const std::string& modelName) const;
 
 	// Intended to be called during mai nmesh processing and before GL prep calls
 	// Anything that will be retreived by an attribute should be here
@@ -32,10 +32,10 @@ private:
 	void proccessElements(const aiMesh& sceneMesh, Mesh& meshOfModel) const;
 
 	// Intended to be called during Node processing for the Mesh phase
-	void processAIMesh(const aiMesh& sceneMesh, Model& parentModel, const aiScene* scene) const;
+	void processAIMesh(const aiMesh& sceneMesh, Model& parentModel, const aiScene* scene, const std::string& modelName) const;
 
 	// Intended to be called after entering Scene processing
-	void processNodeRecursively(const aiNode* node, Model& model, const aiScene* scene) const;
+	void processNodeRecursively(const aiNode* node, Model& model, const aiScene* scene, const std::string& modelName) const;
 
 	// Main entry point for multi-phased processesing
 	void processScene(const aiScene* scene, const std::string& modelName);

@@ -29,7 +29,7 @@ void main() {
 
     // Diffuse calc
     vec3 ambient = ambientStrength * lightColor;
-    vec3 lightDir = normalize(vec3(0.f, 1.f, 0.f));//normalize(lightPos - vFragPos);
+    vec3 lightDir = normalize(lightPos - viewPos);
     float diff = max(dot(norm, lightDir), 0.f);
     vec3 diffuse = diff * lightColor;
 
@@ -50,7 +50,7 @@ void main() {
     		    quadratic * (distanceFromSrc * distanceFromSrc));
 
     // Stage: modify final light values with Point light attenuation
-    if (false){
+    if (true){
         ambient  *= attenuation; 
         diffuse  *= attenuation;
         specular *= attenuation;
@@ -61,7 +61,7 @@ void main() {
         vec4 texColor = texture(texturethang[texSlot], vTexCoords.xy);
         if (texColor.a < 0.1)
             discard;
-        FragColor = texColor;
+        FragColor = vec4((ambient + specular) * texColor.rgb, 1.f);;
     } else {
         FragColor = vec4((ambient + specular) * vColor, 1.f);
     }    

@@ -6,9 +6,9 @@
 // An Instance is a world unit that is used in the game loop. An Instance
 // will have transformation data and mesh data.
 
-class Instance {
+class Instance : public WorldObject {
 public:
-	Instance(const Model& model);
+	Instance() = default;
 private:
 	// The reference points to a target element from CustomImporter.mImportedModels
 	const Model& cmModelRef;

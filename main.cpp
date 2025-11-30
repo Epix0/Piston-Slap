@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "glm/glm.hpp"
 #include <algorithm>
 #include <cstdio>
@@ -7,6 +8,7 @@
 #include <stb/stb_image.h>
 #include <filesystem>
 #include <string>
+
 
 // The default cube now has 2 meshes... but there are 3 VAOs. Perhaps that's why nothing's rendering. Start there
 // In fact, there are weird numbers everywhere. Mesh vector is 8 in size when it should be 2???
@@ -25,6 +27,7 @@ extern "C" {
 #include "CustomIModelImporter.h"
 #include <memory>
 #include "Model.h"
+#include "Player.h"
 
 // app settings
 int SCR_WIDTH = 800;
@@ -48,12 +51,15 @@ glm::vec3 lightPos(0);
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
+float totalTime = 0.f;
 
 // /GLOBAL
 
+// GLFW prototypes
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
+GLFWmonitor* getMonitor();
 
 static void error_callback(int error, const char* description)
 {
@@ -62,7 +68,7 @@ static void error_callback(int error, const char* description)
 
 static void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter);
 static GLFWwindow* createWindow();
-static void congifureWindow(GLFWwindow*& window);
+static void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor);
 static void loadGLWrangler();
 static void configureGL();
 static void configureVendor();
@@ -70,9 +76,10 @@ static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
 
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
-	
+	GLFWmonitor* monitor = getMonitor();
+
 	// Window hints and init config
-	congifureWindow(window);
+	congifureWindow(window, monitor);
 	
 	// Essential for having defs for gl calls
 	loadGLWrangler();
@@ -87,10 +94,19 @@ int main(int argsC, char* argsV[]) {
 	auto pImporter = std::make_shared<CustomModelImporter>(); // main() shall be primary owner of this interface so that imported models remain valid
 	importModels(pImporter);
 
+	// At this point, all assets are good for use
+
+	// player
+	std::shared_ptr<Player> player = std::make_shared<Player>();
+	player->mHeight = 2.f;
+
+	// cam stuff
+	camera.attachToPlayer(player);
+
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
 
-	Model& model = pImporter->getModel("character");
+	Model& model = pImporter->getModel("crate");
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -98,6 +114,9 @@ int main(int argsC, char* argsV[]) {
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		
+		// this will for now handle player pos updates to the cam
 		processInput(window);
 		
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -151,6 +170,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
 void processInput(GLFWwindow* window)
 {
+	// TODO: refactor this bs
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
@@ -167,8 +187,16 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(UP, deltaTime);
 	if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 		camera.ProcessKeyboard(DOWN, deltaTime);
-	
+
+	float yBob = sinf(lastFrame * 15.f) * 0.0008f;
+	float xBob = cosf(lastFrame * 15.f/2) * -0.0008f;
+	camera.Position += glm::vec3(xBob, yBob, 0.f);
+
 	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS
+}
+
+GLFWmonitor* getMonitor() {
+	return glfwGetPrimaryMonitor();
 }
 
 void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter) {
@@ -198,10 +226,14 @@ GLFWwindow* createWindow() {
 	return window;
 }
 
-void congifureWindow(GLFWwindow*& window) {
+void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor) {
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 	glfwSwapInterval(1);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+	Sleep(500);
+	glfwFocusWindow(window);
 }
 
 void loadGLWrangler() {

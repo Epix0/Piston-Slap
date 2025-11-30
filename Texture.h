@@ -6,7 +6,7 @@
 
 class Texture {
 public:
-	Texture(const char* filename);
+	Texture(const char* filename, const std::string& modelName);
 
 	~Texture();
 
