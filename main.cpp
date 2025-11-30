@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <stb/stb_image.h>
+#include <filesystem>
+#include <string>
 
 // The default cube now has 2 meshes... but there are 3 VAOs. Perhaps that's why nothing's rendering. Start there
 // In fact, there are weird numbers everywhere. Mesh vector is 8 in size when it should be 2???
@@ -51,7 +53,7 @@ float lastFrame = 0.0f;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 //void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window, std::shared_ptr<CustomModelImporter> pImporter, Model& model);
+void processInput(GLFWwindow* window);
 
 static void error_callback(int error, const char* description)
 {
@@ -64,6 +66,7 @@ static void congifureWindow(GLFWwindow*& window);
 static void loadGLWrangler();
 static void configureGL();
 static void configureVendor();
+static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
 
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
@@ -80,20 +83,14 @@ int main(int argsC, char* argsV[]) {
 	// stuff like stb image
 	configureVendor();
 
-	std::cout << "Piston Slap: Renderer. Currently, all models should be relative to models/\n";
-
-	auto pImporter = std::make_shared<CustomModelImporter>();
-	// TODO do a init bulk import
-	std::string entryModelName = "";
-
-	grabModelInput(entryModelName, pImporter);
-
-	std::cout << "Loading model [" << entryModelName << "]" << "\n";
-	Model& model = pImporter->mImportedModels.begin()->second;
-	glfwFocusWindow(window);
+	// Import all models from models/
+	auto pImporter = std::make_shared<CustomModelImporter>(); // main() shall be primary owner of this interface so that imported models remain valid
+	importModels(pImporter);
 
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
+
+	Model& model = pImporter->getModel("character");
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -101,7 +98,7 @@ int main(int argsC, char* argsV[]) {
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		processInput(window, pImporter, model);
+		processInput(window);
 		
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
@@ -152,22 +149,10 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void processInput(GLFWwindow* window, std::shared_ptr<CustomModelImporter> pImporter, Model& model)
+void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
-	// go back to console input
-	if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-		glfwIconifyWindow(window);
-		pImporter->mImportedModels.clear();
-		std::string modelName; 
-		grabModelInput(modelName, pImporter);
-		model.~Model();
-		model = pImporter->mImportedModels.begin()->second;
-		glfwRestoreWindow(window);
-		glfwFocusWindow(window);
-	}
 
 	// noclip mode
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -235,4 +220,18 @@ void configureGL() {
 
 void configureVendor() {
 	stbi_set_flip_vertically_on_load(true);
+}
+
+void importModels(std::shared_ptr<CustomModelImporter> pImporter) {
+	for(auto& modelDirEntry : std::filesystem::directory_iterator(Directory::Models)) {
+		if(!modelDirEntry.is_directory())
+			continue;
+		
+		// TODO: create a blacklist of typical side-effect files that should not be imported but have to stay with the main model file
+		for(auto& subModelDirEntry : std::filesystem::directory_iterator(modelDirEntry.path())) {
+			if(subModelDirEntry.path().extension() == ".bin")
+				continue;
+			pImporter->ImportModelFile(subModelDirEntry.path());
+		}
+	}
 }
