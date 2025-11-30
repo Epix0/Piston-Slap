@@ -13,7 +13,6 @@
 #include "assimp/material.h"
 #include "assimp/types.h"
 #include <memory>
-#include <list>
 #include <utility>
 
 // post proc flags
@@ -137,18 +136,16 @@ void CustomModelImporter::processScene(const aiScene* scene, const std::string& 
     processNodeRecursively(scene->mRootNode, model, scene);
 }
 
-bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
+bool CustomModelImporter::ImportModelFile(const std::filesystem::path& fileSysPath) {
     // Create an instance of the Importer class
     Assimp::Importer importer;
-
-    std::filesystem::path fileSysPath(pFile);
    
     try {
         if(!fileSysPath.has_extension())
-            throw("[" + pFile + "] cannot deduce file type. Tossing.\n");
+            throw("[" + fileSysPath.string() + "] cannot deduce file type. Tossing.\n");
 
         if(fileSysPath.extension() == ".fbx") {
-            throw("[" + pFile + "] uses an unsupported format. Consider converting to GLTF/GLB. Tossing.\n");
+            throw("[" + fileSysPath.string() + "] uses an unsupported format. Consider converting to GLTF/GLB. Tossing.\n");
         }
 
     }  catch(const std::string& msg) {
@@ -156,7 +153,7 @@ bool CustomModelImporter::ImportModelFile(const std::string& pFile) {
         return false;
     }
 
-    const aiScene* scene = importer.ReadFile(pFile, cPostProcFlags);
+    const aiScene* scene = importer.ReadFile(fileSysPath.string(), cPostProcFlags);
 
     // If the import failed, report it
     if (nullptr == scene) {

@@ -5,13 +5,14 @@
 #include <string>
 #include "Mesh.h"
 #include <map>
+#include <filesystem>
 
 class CustomModelImporter {
 public:
 	CustomModelImporter(): numOfVertices(0) {};
 	unsigned int numOfVertices;
 
-	bool ImportModelFile(const std::string& pFile);
+	bool ImportModelFile(const std::filesystem::path& fileSysPath);
 
 	Model& getModel(const std::string& modelName);
 
