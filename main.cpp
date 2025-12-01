@@ -7,7 +7,7 @@
 #include <string>
 #include <stb/stb_image.h>
 #include <filesystem>
-#include <string>
+#include <map>
 
 
 // The default cube now has 2 meshes... but there are 3 VAOs. Perhaps that's why nothing's rendering. Start there
@@ -55,24 +55,17 @@ float totalTime = 0.f;
 
 // /GLOBAL
 
-// GLFW prototypes
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
-GLFWmonitor* getMonitor();
-
-static void error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Error: %s\n", description);
-}
-
-static void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter);
 static GLFWwindow* createWindow();
+GLFWmonitor* getMonitor();
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 static void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor);
 static void loadGLWrangler();
 static void configureGL();
 static void configureVendor();
 static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
+static void setupUserInput();
+void processInput(GLFWwindow* window);
+//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
@@ -174,7 +167,6 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	// noclip mode
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -189,8 +181,10 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(DOWN, deltaTime);
 
 	float yBob = sinf(lastFrame * 15.f) * 0.0008f;
-	float xBob = cosf(lastFrame * 15.f/2) * -0.0008f;
-	camera.Position += glm::vec3(xBob, yBob, 0.f);
+	float xBob = cosf(lastFrame * 15.f*.5) * -0.0008f;
+	camera.ProcessKeyboard(RIGHT, xBob);
+	camera.ProcessKeyboard(UP, yBob);
+	//camera.Position += glm::vec3(xBob, yBob, 0.f);
 
 	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS
 }
@@ -266,4 +260,8 @@ void importModels(std::shared_ptr<CustomModelImporter> pImporter) {
 			pImporter->ImportModelFile(subModelDirEntry.path());
 		}
 	}
+}
+
+void setupUserInput() {
+
 }
