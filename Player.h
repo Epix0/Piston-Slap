@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include "Camera.hpp"
 
 class Player : public WorldObject {
@@ -44,9 +45,10 @@ public:
 			{GLFW_KEY_D, PlayerAction::Right},
 			{GLFW_KEY_S, PlayerAction::Backward},
 		},
-		mpCharacterInstance(nullptr),
+		mwkpCharacterInstance{},
 		mWalkingActionDirections{},
-		pCamera(pClientCamera)
+		mpCamera(pClientCamera),
+		mLastCharacterPos(0.f)
 	{};
 
 	// Push an action enum to the input stack
@@ -58,13 +60,15 @@ public:
 	void invokeWalking();
 
 	void processInput();
-
 	
-	inline void setCharacter(std::shared_ptr<Instance> pInstance) { mpCharacterInstance = pInstance; };
-	inline auto getCharacter() const { return mpCharacterInstance; };
+	// Pushes updates to the player camera, which typically is positional updates
+	void processCamera();
+
+	void setCharacter(std::weak_ptr<Instance> pInstance);
+	std::shared_ptr<Instance> getCharacter() const;
 	inline PlayerState getPlayerState() const { return mPlayerState; };
 	inline const auto& getKeybindsToActions() const { return mKeybindsToActions; };
-	inline auto getCamera() { return pCamera; };
+	inline auto getCamera() { return mpCamera; };
 
 	float mHeight;
 private:
@@ -76,9 +80,10 @@ private:
 	std::map<GLFW_KEY, PlayerAction> mKeybindsToActions;
 
 	// The physical thing of this Player
-	std::shared_ptr<Instance> mpCharacterInstance;
+	std::weak_ptr<Instance> mwkpCharacterInstance;
 	std::stack<PlayerAction> mWalkingActionDirections;
-	std::shared_ptr<Camera> pCamera;
+	std::shared_ptr<Camera> mpCamera;
+	glm::vec3 mLastCharacterPos;
 
 	inline void setPlayerState(PlayerState newState) { mPlayerState = newState; };
 	inline void pushWalkingActionDirection(PlayerAction action) { mWalkingActionDirections.push(action); };

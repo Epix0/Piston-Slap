@@ -10,14 +10,14 @@
 
 class CustomModelImporter {
 public:
-	CustomModelImporter(): numOfVertices(0) {};
-	unsigned int numOfVertices;
+	std::map<std::string, std::shared_ptr<Model>> mImportedModels;
+
+	CustomModelImporter() : mImportedModels{} {};
 
 	bool ImportModelFile(const std::filesystem::path& fileSysPath);
 
-	std::shared_ptr<Model> getModel(const std::string& modelName);
+	std::weak_ptr<Model> getModel(const std::string& modelName);
 
-	std::map<std::string, std::shared_ptr<Model>> mImportedModels;
 private:
 
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself

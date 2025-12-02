@@ -5,7 +5,6 @@
 
 class WorldObject {
 public:
-
 	void setScale(float scalar);
 
 	void setScale(const glm::vec3& scale);

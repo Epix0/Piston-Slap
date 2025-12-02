@@ -128,10 +128,11 @@ void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& mode
 }
 
 void CustomModelImporter::processScene(const aiScene* scene, const std::string& modelName) {
-    auto& model = *mImportedModels[modelName];
-    model.mMeshes.reserve(scene->mNumMeshes);
+    auto pModel = std::make_shared<Model>();
+    mImportedModels.insert({ modelName, pModel });
+    pModel->mMeshes.reserve(scene->mNumMeshes);
 
-    processNodeRecursively(scene->mRootNode, model, scene, modelName);
+    processNodeRecursively(scene->mRootNode, *pModel, scene, modelName);
 }
 
 bool CustomModelImporter::ImportModelFile(const std::filesystem::path& fileSysPath) {
@@ -165,9 +166,10 @@ bool CustomModelImporter::ImportModelFile(const std::filesystem::path& fileSysPa
     return true;
 }
 
-// By using the getter for Models, hopefully the app can stop crashing if a model file wasn't located
+// By using the getter for Models, hopefully the app can stop crashing if a model file wasn't located.
+// Implicit conversion from shared to weak vv
 
-std::shared_ptr<Model> CustomModelImporter::getModel(const std::string& modelName) {
+std::weak_ptr<Model> CustomModelImporter::getModel(const std::string& modelName) {
     auto search = mImportedModels.find(modelName);
     if(search != mImportedModels.end())
         return search->second;
