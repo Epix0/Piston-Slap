@@ -8,10 +8,10 @@
 
 using std::string, std::vector;
 
-class Model : public WorldObject {
+class Model {
 public:
 	friend class CustomModelImporter;
-	Model() : mMeshes(0) {};
+	Model() : mMeshes{} {};
 	
 	Model(const Model&) {
 		std::cout << "Model copied\n";
@@ -25,8 +25,6 @@ public:
 	void draw(ShaderProgram& shader) const;
 		
 	inline size_t getMeshCount() const { return mMeshes.size(); };
-
-
 private:
 	// Model's Meshes
 	std::vector<Mesh> mMeshes;
