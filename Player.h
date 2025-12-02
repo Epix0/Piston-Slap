@@ -59,6 +59,9 @@ public:
 
 	void processInput();
 
+	
+	inline void setCharacter(std::shared_ptr<Instance> pInstance) { mpCharacterInstance = pInstance; };
+	inline auto getCharacter() const { return mpCharacterInstance; };
 	inline PlayerState getPlayerState() const { return mPlayerState; };
 	inline const auto& getKeybindsToActions() const { return mKeybindsToActions; };
 	inline auto getCamera() { return pCamera; };
