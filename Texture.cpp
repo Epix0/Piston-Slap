@@ -1,10 +1,8 @@
 #include "Texture.h"
 #include <stb/stb_image.h>
 #include <iostream>
-#include <intrin.h>
 #include "glad/glad.h"
 #include <string>
-#include <iostream>
 
 static int sTextureSlot = 0;
 constexpr int cDesiredColorChannels = 4; // All textures shall be outputted with RGB channels
