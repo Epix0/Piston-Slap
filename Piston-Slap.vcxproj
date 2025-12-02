@@ -158,7 +158,6 @@
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="Instance.h" />
-    <ClInclude Include="InstanceService.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Player.h" />
