@@ -8,10 +8,9 @@
 #include <stb/stb_image.h>
 #include <filesystem>
 #include <map>
+#include <memory>
+#include "Instance.h"
 
-
-// The default cube now has 2 meshes... but there are 3 VAOs. Perhaps that's why nothing's rendering. Start there
-// In fact, there are weird numbers everywhere. Mesh vector is 8 in size when it should be 2???
 using std::string, std::cout;
 
 #include <glad/glad.h>
@@ -40,13 +39,9 @@ const struct Directory {
 
 // GLOBAL
 
-// main world cam
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
-
-glm::vec3 lightPos(0);
+// TODO: better client-launch setting. Global "pPlayer" feels wrong
+//		PS -- this is here to gain scope to a camera during mouse callback. Get rid of this, then refactor mouse callback
+std::shared_ptr<Player> pPlayer = nullptr;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -57,14 +52,17 @@ float totalTime = 0.f;
 
 static GLFWwindow* createWindow();
 GLFWmonitor* getMonitor();
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+// GLFW unique signature
+void GLFW_mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void mainMouseCallback(float xpos, float ypos, std::shared_ptr<Camera> pCamera);
 static void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor);
 static void loadGLWrangler();
 static void configureGL();
 static void configureVendor();
 static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
-static void setupUserInput();
-void processInput(GLFWwindow* window);
+// @rInputsMap will be populated
+static void setupUserInput(std::map<int, Player::PlayerAction>& rInputsMap);
+void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer);
 //void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 int main(int argsC, char* argsV[]) {
@@ -83,34 +81,38 @@ int main(int argsC, char* argsV[]) {
 	// stuff like stb image
 	configureVendor();
 
-	// Import all models from models/
+	// Import all models from [models/*]. This implicitly imports [textures/*], too
 	auto pImporter = std::make_shared<CustomModelImporter>(); // main() shall be primary owner of this interface so that imported models remain valid
 	importModels(pImporter);
 
+	// Setup user input
+	std::map<int, Player::PlayerAction> vInputActions;
+	setupUserInput(vInputActions);
+
 	// At this point, all assets are good for use
 
-	// player
-	std::shared_ptr<Player> player = std::make_shared<Player>();
-	player->mHeight = 2.f;
+	// cam
+	auto pCamera = std::make_shared<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), static_cast<float>(SCR_WIDTH) * .5f, static_cast<float>(SCR_HEIGHT) * .5f);
 
-	// cam stuff
-	camera.attachToPlayer(player);
+	// player
+	pPlayer = std::make_shared<Player>(pCamera);
+	pPlayer->mHeight = 2.f;
 
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
+	auto& model = *pImporter->getModel("crate");
 
-	Model& model = pImporter->getModel("crate");
+	auto playerCharacter = std::make_shared<Instance>("Epix0_Character");
+	
 
-	while (!glfwWindowShouldClose(window))
-	{
+	while (!glfwWindowShouldClose(window))	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		
 		// this will for now handle player pos updates to the cam
-		processInput(window);
+		grabInput(window, pPlayer);
 		
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
@@ -121,8 +123,8 @@ int main(int argsC, char* argsV[]) {
 
 		shader.use();
 		shader.setMat4("projection", perspective);
-		shader.setMat4("view", camera.GetViewMatrix());
-		shader.setVec3("viewPos", camera.Position);
+		shader.setMat4("view", pCamera->GetViewMatrix());
+		shader.setVec3("viewPos", pCamera->Position);
 
 		model.draw(shader);
 
@@ -140,53 +142,48 @@ int main(int argsC, char* argsV[]) {
 	return 0;
 }
 
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-	float xpos = static_cast<float>(xposIn);
-	float ypos = static_cast<float>(yposIn);
-
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
+void GLFW_mouse_callback(GLFWwindow*, double xposIn, double yposIn) {
+	if(pPlayer) {
+		mainMouseCallback(static_cast<float>(xposIn), static_cast<float>(yposIn), pPlayer->getCamera());
 	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-	lastX = xpos;
-	lastY = ypos;
-
-	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void processInput(GLFWwindow* window)
-{
+void mainMouseCallback(float xpos, float ypos, std::shared_ptr<Camera> pCamera) {
+	if(!pCamera) {
+		return;
+	}
+
+	if(pCamera->mFirstMouse) {
+		pCamera->mLastMouseX = xpos;
+		pCamera->mLastMouseY = ypos;
+		pCamera->mFirstMouse = false;
+	}
+
+	float xoffset = xpos - pCamera->mLastMouseX;
+	float yoffset = pCamera->mLastMouseY - ypos; // reversed since y-coordinates go from bottom to top
+
+	pCamera->mLastMouseX = xpos;
+	pCamera->mLastMouseY = ypos;
+
+	pCamera->ProcessMouseMovement(xoffset, yoffset);
+}
+
+void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer) {
 	// TODO: refactor this bs
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+		return;
+	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
-	if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-		camera.ProcessKeyboard(UP, deltaTime);
-	if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-		camera.ProcessKeyboard(DOWN, deltaTime);
+	for(auto& [ key, action] : pPlayer->getKeybindsToActions()) {
+		if(glfwGetKey(window, key) == GLFW_PRESS)
+			pPlayer->pushAction(action);
+	}
 
-	float yBob = sinf(lastFrame * 15.f) * 0.0008f;
-	float xBob = cosf(lastFrame * 15.f*.5) * -0.0008f;
-	camera.ProcessKeyboard(RIGHT, xBob);
-	camera.ProcessKeyboard(UP, yBob);
-	//camera.Position += glm::vec3(xBob, yBob, 0.f);
-
-	//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS
+	//float yBob = sinf(lastFrame * 15.f) * 0.0008f;
+	//float xBob = cosf(lastFrame * 15.f*.5) * -0.0008f;
+	//camera.ProcessKeyboard(RIGHT, xBob);
+	//camera.ProcessKeyboard(UP, yBob);
 }
 
 GLFWmonitor* getMonitor() {
@@ -223,11 +220,14 @@ GLFWwindow* createWindow() {
 void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor) {
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 	glfwSwapInterval(1);
-	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetCursorPosCallback(window, GLFW_mouse_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+#ifndef DEBUG
 	glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 	Sleep(500);
 	glfwFocusWindow(window);
+#endif
 }
 
 void loadGLWrangler() {
@@ -262,6 +262,12 @@ void importModels(std::shared_ptr<CustomModelImporter> pImporter) {
 	}
 }
 
-void setupUserInput() {
-
+void setupUserInput(std::map<int, Player::PlayerAction>& rInputsMap) {
+	typedef Player::PlayerAction Action;
+	rInputsMap[GLFW_KEY_W] = Action::Forward;
+	rInputsMap[GLFW_KEY_S] = Action::Backward;
+	rInputsMap[GLFW_KEY_A] = Action::Left;
+	rInputsMap[GLFW_KEY_D] = Action::Right;
+	rInputsMap[GLFW_KEY_SPACE] = Action::Jump;
+	rInputsMap[GLFW_KEY_LEFT_CONTROL] = Action::Crouch;
 }
