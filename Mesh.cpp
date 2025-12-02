@@ -40,7 +40,6 @@ void Mesh::prepareForGL() {
 }
 
 void Mesh::draw(ShaderProgram& shader) const {
-
 	if (mTexture) {
 		shader.setBool("hasTex", true);
 		shader.setInt("texSlot", mTexture->getAssignedTextureSlot());
