@@ -11,6 +11,8 @@
 #include <memory>
 #include "Instance.h"
 
+// something fishy going on when trying to load "character" model?
+
 using std::string, std::cout;
 
 #include <glad/glad.h>
@@ -64,6 +66,7 @@ static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
 static void setupUserInput(std::map<int, Player::PlayerAction>& rInputsMap);
 void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer);
 //void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void renderInstances(const std::vector<std::weak_ptr<Instance>>& instances, ShaderProgram& shader);
 
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
@@ -98,13 +101,19 @@ int main(int argsC, char* argsV[]) {
 	pPlayer = std::make_shared<Player>(pCamera);
 	pPlayer->mHeight = 2.f;
 
+	// instance
+	auto pPlrCharacter = std::make_shared<Instance>("Epix0 Character", pImporter->getModel("character"));
+
+	// combining
+	pPlayer->setCharacter(pPlrCharacter);
+	
+	// renderer stuff
+		// if an Instance is to be rendered, add it here
+	std::vector<std::weak_ptr<Instance>> instancesToRender = { pPlrCharacter };
+	
 	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
 	shader.use();
-	auto& model = *pImporter->getModel("crate");
-
-	auto playerCharacter = std::make_shared<Instance>("Epix0_Character");
 	
-
 	while (!glfwWindowShouldClose(window))	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -121,12 +130,14 @@ int main(int argsC, char* argsV[]) {
 		glm::mat4 perspective = glm::mat4(1.0f);
 		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / std::max(static_cast<float>(SCR_HEIGHT), 1.0f), 0.1f, 200.0f);
 
+		pPlayer->processCamera();
+
 		shader.use();
 		shader.setMat4("projection", perspective);
 		shader.setMat4("view", pCamera->GetViewMatrix());
 		shader.setVec3("viewPos", pCamera->Position);
 
-		model.draw(shader);
+		renderInstances(instancesToRender, shader);
 
 		GLenum err = glGetError();
 		if (err > 0)
@@ -186,23 +197,16 @@ void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer) {
 	//camera.ProcessKeyboard(UP, yBob);
 }
 
-GLFWmonitor* getMonitor() {
-	return glfwGetPrimaryMonitor();
+void renderInstances(const std::vector<std::weak_ptr<Instance>>& instances, ShaderProgram& shader) {
+	for(auto& wkpInstance : instances) {
+		if(auto pInstance = wkpInstance.lock()) {
+			pInstance->draw(shader);
+		}
+	}
 }
 
-void grabModelInput(std::string& nameVar, std::shared_ptr<CustomModelImporter> pImporter) {
-	while(nameVar.empty()) {
-		std::cout << "Enter a model name followed by the extension\n";
-		std::cin >> nameVar;
-
-		if(nameVar.empty())
-			continue;
-
-		if(!pImporter->ImportModelFile(Directory::Models + nameVar))
-			nameVar.clear();
-		else
-			break;
-	}
+GLFWmonitor* getMonitor() {
+	return glfwGetPrimaryMonitor();
 }
 
 GLFWwindow* createWindow() {
