@@ -12,6 +12,8 @@ Player::PlayerAction Player::popAction() {
 		mPlayerActionsStack.pop();
 		return action;
 	}
+}
 
-	return PlayerAction();
+bool Player::isThisActionWalking (Player::PlayerAction vAction) const {
+	return mHorizontalMovementActions.contains(vAction);
 }
