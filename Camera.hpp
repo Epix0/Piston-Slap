@@ -21,9 +21,6 @@ const float SPEED = 0.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
-// timing bs
-float totalDelta = 0.f;
-
 class Camera
 {
 public:
@@ -41,15 +38,18 @@ public:
     float MouseSensitivity;
     float Zoom;
     bool mFirstMouse;
+    float mLastMouseX;
+    float mLastMouseY;
 
     // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-        MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), mFirstMouse(true)
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float xMouseOrigin = 0.f, float yMouseOrigin = 0.f) :
+        Front(glm::vec3(0.0f, 0.0f, -1.0f)),
+        MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), mFirstMouse(true), mLastMouseX(xMouseOrigin), mLastMouseY(yMouseOrigin)
     {
         Position = position;
-        WorldUp = up;
-        Yaw = yaw;
-        Pitch = pitch;
+        WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        Yaw = YAW;
+        Pitch = PITCH;
         updateCameraVectors();
     }
 
