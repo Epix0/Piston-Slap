@@ -128,7 +128,7 @@ void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& mode
 }
 
 void CustomModelImporter::processScene(const aiScene* scene, const std::string& modelName) {
-    Model& model = mImportedModels[modelName];
+    auto& model = *mImportedModels[modelName];
     model.mMeshes.reserve(scene->mNumMeshes);
 
     processNodeRecursively(scene->mRootNode, model, scene, modelName);
@@ -167,7 +167,7 @@ bool CustomModelImporter::ImportModelFile(const std::filesystem::path& fileSysPa
 
 // By using the getter for Models, hopefully the app can stop crashing if a model file wasn't located
 
-Model& CustomModelImporter::getModel(const std::string& modelName) {
+std::shared_ptr<Model> CustomModelImporter::getModel(const std::string& modelName) {
     auto search = mImportedModels.find(modelName);
     if(search != mImportedModels.end())
         return search->second;

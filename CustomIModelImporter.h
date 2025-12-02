@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include <map>
 #include <filesystem>
+#include <memory>
 
 class CustomModelImporter {
 public:
@@ -14,9 +15,9 @@ public:
 
 	bool ImportModelFile(const std::filesystem::path& fileSysPath);
 
-	Model& getModel(const std::string& modelName);
+	std::shared_ptr<Model> getModel(const std::string& modelName);
 
-	std::map<std::string, Model> mImportedModels;
+	std::map<std::string, std::shared_ptr<Model>> mImportedModels;
 private:
 
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
