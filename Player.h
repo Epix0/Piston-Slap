@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <GLFW/glfw3.h>
+#include "Camera.hpp"
 
 class Player : public WorldObject {
 public:
@@ -30,7 +31,7 @@ public:
 		Flying,
 	};
 
-	Player() :
+	Player(std::shared_ptr<Camera> pClientCamera) :
 		mHeight(0.f),
 		mPlayerState(Player::PlayerState::None),
 		mHorizontalMovementActions{
@@ -43,26 +44,29 @@ public:
 			{GLFW_KEY_D, PlayerAction::Right},
 			{GLFW_KEY_S, PlayerAction::Backward},
 		},
-		mpCharacterInstance(nullptr)
+		mpCharacterInstance(nullptr),
+		mWalkingActionDirections{},
+		pCamera(pClientCamera)
 	{};
 
 	// Push an action enum to the input stack
 	void pushAction(PlayerAction action);
 
-	// Pops an enum action from the input stack
-	PlayerAction popAction();
-
 	// Evaluate whether @vAction is considered to trigger walking state
 	bool isThisActionWalking(Player::PlayerAction vAction) const;
 
+	void invokeWalking();
+
+	void processInput();
+
 	inline PlayerState getPlayerState() const { return mPlayerState; };
+	inline const auto& getKeybindsToActions() const { return mKeybindsToActions; };
+	inline auto getCamera() { return pCamera; };
 
 	float mHeight;
 private:
 	PlayerState mPlayerState;
-
 	const std::set<PlayerAction> mHorizontalMovementActions;
-
 	std::stack<PlayerAction> mPlayerActionsStack;
 
 	typedef int GLFW_KEY;
@@ -70,5 +74,25 @@ private:
 
 	// The physical thing of this Player
 	std::shared_ptr<Instance> mpCharacterInstance;
+	std::stack<PlayerAction> mWalkingActionDirections;
+	std::shared_ptr<Camera> pCamera;
 
+	inline void setPlayerState(PlayerState newState) { mPlayerState = newState; };
+	inline void pushWalkingActionDirection(PlayerAction action) { mWalkingActionDirections.push(action); };
+	
+	template<typename tStackType>
+	tStackType popStackSafely(std::stack<tStackType>& stack);
+
+	void processPlayerState();
 };
+
+template<typename tStackType>
+inline tStackType Player::popStackSafely(std::stack<tStackType>& stack) {
+	if(stack.size() == 0)
+		return tStackType{};
+	else {
+		tStackType element = stack.top();
+		stack.pop();
+		return element;
+	}
+}

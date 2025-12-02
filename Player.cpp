@@ -4,16 +4,34 @@ void Player::pushAction(PlayerAction action) {
 	mPlayerActionsStack.push(action);
 }
 
-Player::PlayerAction Player::popAction() {
-	if(mPlayerActionsStack.size() == 0)
-		return PlayerAction::None;
-	else {
-		auto action = mPlayerActionsStack.top();
-		mPlayerActionsStack.pop();
-		return action;
+bool Player::isThisActionWalking (Player::PlayerAction vAction) const {
+	return mHorizontalMovementActions.contains(vAction);
+}
+
+void Player::invokeWalking() {
+	switch(popStackSafely(mWalkingActionDirections)) {
+	case PlayerAction::Forward:
+
 	}
 }
 
-bool Player::isThisActionWalking (Player::PlayerAction vAction) const {
-	return mHorizontalMovementActions.contains(vAction);
+void Player::processInput() {
+	auto action = popStackSafely(mPlayerActionsStack);
+
+	while(action != PlayerAction::None) {
+		if(isThisActionWalking(action)) {
+			setPlayerState(PlayerState::Walking);
+			pushWalkingActionDirection(action);
+		}
+		
+		processPlayerState();
+		action = popStackSafely(mPlayerActionsStack);
+	}
+}
+
+void Player::processPlayerState() {
+	switch(getPlayerState()) {
+	case PlayerState::Walking:
+		invokeWalking();
+	}
 }
