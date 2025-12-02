@@ -7,7 +7,7 @@ in vec2 vTexCoords;
 in vec3 vColor;
 
 uniform int texSlot;
-uniform sampler2D texturethang[5];
+uniform sampler2D texturethang[40];
 uniform bool hasTex;
 uniform vec3 viewPos; // cam pos
 
