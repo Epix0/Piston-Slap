@@ -5,6 +5,7 @@
 #include "glm/glm.hpp"
 #include "Texture.h"
 #include <memory>
+#include <vector>
 
 /* Mesh contains the vertex data which makes up its shape and texture placement (texcoords).
 * The current data uses triangulated primitives for its position.
@@ -16,11 +17,25 @@ struct Vertex {
 	glm::vec3 Normal;
 	glm::vec2 TexCoords;
 	glm::vec3 Color;
+	Vertex() : Position(0), Normal(0), TexCoords(0), Color(0) {};
+	Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec3& texcoords, const glm::vec3& col) :
+		Position(pos), Normal(norm), TexCoords(texcoords), Color(col)
+	{}
 };
 
 class Mesh {
 public:
-	Mesh() : VAO(0), VBO(0), EBO(0) {};
+	Mesh() : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{} {};
+
+	// prepForOpenGL() will call itself
+	Mesh(const std::vector<float>& vertices3f) : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{} {
+		prepareForGL();
+	};
+
+	// Mesh manages ownership of custom Texture. prepForOpenGL() will call itself
+	Mesh(const std::vector<float>& vertices3f, std::shared_ptr<Texture>&& pTexture) {
+		prepareForGL();
+	};;
 
 	~Mesh();
 
@@ -35,6 +50,6 @@ public:
 	std::vector<GLuint> mElements;
 	// Only loading diffuse maps sooo one member lol
 	std::shared_ptr<Texture> mTexture;
-private:
 	GLuint VAO, VBO, EBO;
+private:
 };

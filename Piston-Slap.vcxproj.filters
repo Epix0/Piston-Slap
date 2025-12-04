@@ -98,5 +98,11 @@
     <None Include="dependencies\shaders\OpaqueLighting.vert">
       <Filter>Source Files\Shaders</Filter>
     </None>
+    <None Include="dependencies\shaders\Skybox.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="dependencies\shaders\Skybox.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -39,7 +39,7 @@ void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfM
 
     std::string strPath = aiPath.C_Str();
     std::string filename = strPath.substr(strPath.find_last_of("/\\") + 1);
-    path filePath = "textures/" + modelName + filename;
+    path filePath = "textures/" + modelName + "/" + filename;
 
     meshOfModel.mTexture = std::make_shared<Texture>(filePath, GL_TEXTURE_2D);
     if(meshOfModel.mTexture->getGLTextureId() == 0) {

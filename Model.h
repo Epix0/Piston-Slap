@@ -12,6 +12,7 @@ class Model {
 public:
 	friend class CustomModelImporter;
 	Model() : mMeshes{} {};
+	Model(const Mesh& mesh) : mMeshes{mesh} {};
 	
 	Model(const Model&) {
 		std::cout << "Model copied\n";

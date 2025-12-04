@@ -39,7 +39,7 @@ public:
 	/// <param name="target">
 	///	Modifies how the texture will be loaded
 	/// </param>
-	Texture(const path& filePath, GLenum target);
+	Texture(const path& filePath, int target);
 
 	~Texture();
 

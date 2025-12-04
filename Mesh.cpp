@@ -15,7 +15,6 @@ Mesh::~Mesh() {
 }
 
 void Mesh::prepareForGL() {
-	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);
 
@@ -23,8 +22,11 @@ void Mesh::prepareForGL() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), mVertices.data(), GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mElements.size(), mElements.data(), GL_STATIC_DRAW);
+	if(mElements.size() > 0) {
+		glGenBuffers(1, &EBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mElements.size(), mElements.data(), GL_STATIC_DRAW);
+	}
 
 	// Position, Normal, TexCoords, Color
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), ptrZero);
@@ -49,7 +51,11 @@ void Mesh::draw(ShaderProgram& shader) const {
 		shader.setBool("hasTex", false);
 
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mElements.size()), GL_UNSIGNED_INT, ptrZero);
+	if(mElements.size() > 0)
+		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mElements.size()), GL_UNSIGNED_INT, ptrZero);
+	else
+		glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
+
 	//glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(0);
 }

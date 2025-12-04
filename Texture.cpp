@@ -11,21 +11,22 @@
 static int sTextureSlot = 0;
 
 const std::vector<std::string> Texture::scmFaceNames = {
-	"right",
-	"left",
-	"top",
-	"bottom",
-	"front",
-	"back"
+	"right.png",
+	"left.png",
+	"top.png",
+	"bottom.png",
+	"front.png",
+	"back.png"
 };
 
 constexpr int cDesiredColorChannels = 4; // All textures shall be outputted with RGB channels
 using namespace std::filesystem;
 
-Texture::Texture(const path& filePath, GLenum target) : mSlotNum(0), mBitData(nullptr), mTextureId(0),
+Texture::Texture(const path& filePath, int target) : mSlotNum(0), mBitData(nullptr), mTextureId(0),
 	mVertexIndex(0), mTextureTarget(target) {
 	
 	glGenTextures(1, &mTextureId);
+	std::cout << "Texture ID of " << mTextureId << " made for target: " << ((target == GL_TEXTURE_2D) ? "2D" : "CubeMap") << "\n";
 	glActiveTexture(GL_TEXTURE0 + sTextureSlot);
 	mVertexIndex = sTextureSlot;
 	mSlotNum = sTextureSlot;
@@ -41,7 +42,7 @@ Texture::Texture(const path& filePath, GLenum target) : mSlotNum(0), mBitData(nu
 		}
 		std::cout << "Loaded " << filePath.string().c_str() << "\n";
 
-		glTexImage2D(target, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dat.get());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dat.get());
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -53,8 +54,9 @@ Texture::Texture(const path& filePath, GLenum target) : mSlotNum(0), mBitData(nu
 			auto [dat, w, h, ch] = loadImage(p.string().c_str(), cDesiredColorChannels);
 
 			if(dat) {
+				std::cout << "Loaded " << p.string() << "\n";
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-					0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, dat.get());
+					0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dat.get());
 			} else
 				std::cout << "Cubemap tex failed to load face: " << scmFaceNames[i] << " \n";
 		}
@@ -64,8 +66,6 @@ Texture::Texture(const path& filePath, GLenum target) : mSlotNum(0), mBitData(nu
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-		// texImg2d here
 	}
 
 	
@@ -73,7 +73,7 @@ Texture::Texture(const path& filePath, GLenum target) : mSlotNum(0), mBitData(nu
 };
 
 Texture::~Texture() {
-	if (mTextureId != 0)
+	if(mTextureId != 0)
 		glDeleteTextures(1, &mTextureId);
 }
 

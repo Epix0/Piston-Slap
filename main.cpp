@@ -87,7 +87,7 @@ int main(int argsC, char* argsV[]) {
 
 	// Import all models from [models/*]. This implicitly imports [textures/*], too
 	auto pImporter = std::make_shared<CustomModelImporter>(); // main() shall be primary owner of this interface so that imported models remain valid
-	importModels(pImporter);
+	//importModels(pImporter);
 
 	// Setup user input
 	std::map<int, Player::PlayerAction> vInputActions;
@@ -115,14 +115,13 @@ int main(int argsC, char* argsV[]) {
 	// renderer stuff
 		// if an Instance is to be rendered, add it here
 	std::vector<std::weak_ptr<Instance>> instancesToRender = { pPlrCharacter };
-	
-//>>	Shaders		<< 
-	
-	// OpaqueLighting
-	ShaderProgram opaqueLightingShader(Directory::Shaders + "OpaqueLighting.vert", Directory::Shaders + "OpaqueLighting.frag");
 
-	// Skybox
-	constexpr float skyboxVertices[] = {          
+#ifdef DEBUG
+	// Tex
+	auto cubemapTex = std::make_shared<Texture>(path("textures/skybox/"), GL_TEXTURE_CUBE_MAP);
+
+	// Skybox Pos Vertices
+	const float skyboxVertices[] = {
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f,
@@ -166,6 +165,22 @@ int main(int argsC, char* argsV[]) {
 		 1.0f, -1.0f,  1.0f
 	};
 
+	unsigned int skyboxVAO, skyboxVBO;
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+#endif
+
+//>>	Shaders		<< 
+	
+	// OpaqueLighting
+	ShaderProgram opaqueLightingShader(Directory::Shaders + "OpaqueLighting.vert", Directory::Shaders + "OpaqueLighting.frag");
+	ShaderProgram skyboxShader(Directory::Shaders + "Skybox.vert", Directory::Shaders + "Skybox.frag");
+
 	while (!glfwWindowShouldClose(window))	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -195,6 +210,24 @@ int main(int argsC, char* argsV[]) {
 
 		renderInstances(instancesToRender, opaqueLightingShader);
 
+#ifdef DEBUG
+		// draw skybox as last
+		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+		skyboxShader.use();
+		glm::mat4 view = glm::mat4(glm::mat3(pCamera->GetViewMatrix())); // remove translation from the view matrix
+		skyboxShader.setMat4("view", view);
+		skyboxShader.setMat4("projection", perspective);
+		skyboxShader.setInt("texturethang", cubemapTex->getAssignedTextureSlot());
+		// skybox
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTex->getGLTextureId());
+		glBindVertexArray(skyboxVAO);
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthFunc(GL_LESS); // set depth function back to default
+		
+#endif
 		GLenum err = glGetError();
 		if (err > 0)
 			std::cout << err << "\n";

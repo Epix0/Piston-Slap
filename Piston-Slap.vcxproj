@@ -170,6 +170,8 @@
     <None Include="dependencies\glfw3.dll" />
     <None Include="dependencies\shaders\OpaqueLighting.frag" />
     <None Include="dependencies\shaders\OpaqueLighting.vert" />
+    <None Include="dependencies\shaders\Skybox.frag" />
+    <None Include="dependencies\shaders\Skybox.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
