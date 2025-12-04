@@ -1,8 +1,15 @@
 #pragma once
 #include <string>
+#include <memory>
+#include <stb/stb_image.h>
 
 class Texture {
 public:
+	enum class TextureTarget : unsigned char {
+		Cubemap,
+		TwoDim
+	};
+
 	Texture(const char* filename, const std::string& modelName);
 
 	~Texture();
@@ -20,7 +27,7 @@ public:
 	int mVertexIndex;
 private:
 	// The return ptr from stb_iamge
-	unsigned char* mBitData;
+	std::unique_ptr<stbi_uc> mBitData;
 	// GL handle
 	unsigned int mTextureId;
 #if false
