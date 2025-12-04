@@ -4,16 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-enum Camera_Movement {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-};
-
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
@@ -24,6 +14,15 @@ const float ZOOM = 45.0f;
 class Camera
 {
 public:
+    enum class Camera_Movement {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT,
+        UP,
+        DOWN
+    };
+
     // camera Attributes
     glm::vec3 Position;
     glm::vec3 Front;
@@ -40,11 +39,13 @@ public:
     bool mFirstMouse;
     float mLastMouseX;
     float mLastMouseY;
-
+    glm::vec3 mOffset;
+    
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float xMouseOrigin = 0.f, float yMouseOrigin = 0.f) :
         Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-        MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), mFirstMouse(true), mLastMouseX(xMouseOrigin), mLastMouseY(yMouseOrigin)
+        MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM), mFirstMouse(true), mLastMouseX(xMouseOrigin), mLastMouseY(yMouseOrigin),
+        mOffset(0.f)
     {
         Position = position;
         WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -61,23 +62,19 @@ public:
 
    inline void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
-        float yComp = Position.y;
-  
 
-        if (direction == FORWARD)
+        if (direction == Camera_Movement::FORWARD)
             Position += Front * velocity;
-        if (direction == BACKWARD)
+        if (direction == Camera_Movement::BACKWARD)
             Position -= Front * velocity;
-        if (direction == LEFT)
+        if (direction == Camera_Movement::LEFT)
             Position -= Right * velocity;
-        if (direction == RIGHT)
+        if (direction == Camera_Movement::RIGHT)
             Position += Right * velocity;
-        if(direction == UP)
+        if(direction == Camera_Movement::UP)
             Position -= Up * velocity;
-        if(direction == DOWN)
+        if(direction == Camera_Movement::DOWN)
             Position += Up * velocity;
-        
-        //Position.y = yComp;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -109,7 +106,6 @@ public:
         if (Zoom > 45.0f)
             Zoom = 45.0f;
     }
-
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     inline void updateCameraVectors()

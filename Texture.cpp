@@ -4,39 +4,70 @@
 #include "glad/glad.h"
 #include <string>
 #include <memory>
+#include <filesystem>
+#include <utility>
+#include <vector>
 
 static int sTextureSlot = 0;
+
+const std::vector<std::string> Texture::scmFaceNames = {
+	"right",
+	"left",
+	"top",
+	"bottom",
+	"front",
+	"back"
+};
+
 constexpr int cDesiredColorChannels = 4; // All textures shall be outputted with RGB channels
+using namespace std::filesystem;
 
-Texture::Texture(const char* filename, const std::string& modelName) :
-	mSlotNum(0), mBitData(nullptr), mTextureId(0), mVertexIndex(0)	{
-	int width = 0;
-	int height = 0;
-	int channels = 0;
-	std::string finalPath = std::string("textures/") + modelName + "/" + std::string(filename);
+Texture::Texture(const path& filePath, GLenum target) : mSlotNum(0), mBitData(nullptr), mTextureId(0),
+	mVertexIndex(0), mTextureTarget(target) {
 	
-	// the return of stbi isn't used beyond tex loading, so a local is used for now instead of mBitData
-	auto bitData = std::make_unique<stbi_uc>(stbi_load(finalPath.c_str(), &width, &height, &channels, cDesiredColorChannels));
-
-	if (!bitData)
-	{
-		std::cout << "Texture: " << finalPath << " failed to import\n";
-		return;
-	}
-
-	std::cout << "Loaded " << filename << "\n";
-
 	glGenTextures(1, &mTextureId);
 	glActiveTexture(GL_TEXTURE0 + sTextureSlot);
-	mSlotNum = sTextureSlot;
 	mVertexIndex = sTextureSlot;
+	mSlotNum = sTextureSlot;
 	bind();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitData.get());
-	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// TwoDim
+	if(target == GL_TEXTURE_2D) {
+		auto [dat, w, h, ch] = loadImage(filePath.string().c_str(), cDesiredColorChannels);
+
+		if(!dat) {
+			std::cout << "Texture: " << filePath.string().c_str() << " failed to import\n";
+			return;
+		}
+		std::cout << "Loaded " << filePath.string().c_str() << "\n";
+
+		glTexImage2D(target, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dat.get());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else if(target == GL_TEXTURE_CUBE_MAP) {
+		for(unsigned int i = 0; i < scmFaceNames.size(); i++) {
+			auto p = filePath / scmFaceNames[i];
+			auto [dat, w, h, ch] = loadImage(p.string().c_str(), cDesiredColorChannels);
+
+			if(dat) {
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+					0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, dat.get());
+			} else
+				std::cout << "Cubemap tex failed to load face: " << scmFaceNames[i] << " \n";
+		}
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		// texImg2d here
+	}
+
 	
 	++sTextureSlot;
 };
@@ -47,9 +78,16 @@ Texture::~Texture() {
 }
 
 void Texture::bind() const {
-	glBindTexture(GL_TEXTURE_2D, mTextureId);
+	glBindTexture(mTextureTarget, mTextureId);
 }
 
 int Texture::getAssignedTextureSlot() const {
 	return mSlotNum;
+}
+
+ReturnedImageData Texture::loadImage(const char* path, int desiredChannels) {
+	int w{}, h{}, ch{};
+	auto* data = stbi_load(path, &w, &h, &ch, desiredChannels);
+	
+	return ReturnedImageData( data, w, h, ch );
 }

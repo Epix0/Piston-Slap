@@ -1,5 +1,8 @@
 #include "Player.h"
 #include <glm/glm.hpp>
+#include "Camera.hpp"
+#include "World.h"
+#include <iostream>
 
 void Player::pushAction(PlayerAction action) {
 	mPlayerActionsStack.push(action);
@@ -18,11 +21,10 @@ void Player::invokeWalking() {
 
 void Player::processInput() {
 	auto action = popStackSafely(mPlayerActionsStack);
-
 	while(action != PlayerAction::None) {
 		if(isThisActionWalking(action)) {
-			setPlayerState(PlayerState::Walking);
 			pushWalkingActionDirection(action);
+
 		}
 		
 		processPlayerState();
@@ -31,11 +33,15 @@ void Player::processInput() {
 }
 
 void Player::processCamera() {
+	if(mIsFlyingDetached) {
+		// any new offsets should go here. For now, it's in the state case machine
+		return;
+	}
+
 	if(auto pCharacter = getCharacter()) {
-		std::cout << "doing cam\n";
 		if(pCharacter->getPos() == mLastCharacterPos) // I think a compare op is cheaper than two copy-sets with single addition
 			return;
-		std::cout << "setting pos!\n";
+
 		mLastCharacterPos = pCharacter->getPos();
 		mpCamera->Position = mLastCharacterPos + glm::vec3(0.f, mHeight, 0.f);
 	}
@@ -52,9 +58,46 @@ std::shared_ptr<Instance> Player::getCharacter() const {
 	return mwkpCharacterInstance.lock();
 }
 
+void Player::setFlyingDetached(bool bOption) {
+	mIsFlyingDetached = bOption;
+	setPlayerState(bOption ? PlayerState::FlyingDetached : PlayerState::Falling);
+}
+
+void Player::processWalkingDirsToDetachedCamera() {
+	auto direction = popStackSafely(mWalkingActionDirections);
+	float delta = World::getWorld()->mDeltaTime;
+	using CamDir = Camera::Camera_Movement;
+
+	while(direction != PlayerAction::None) {
+		switch(direction) {
+		case PlayerAction::Forward:
+			mpCamera->ProcessKeyboard(CamDir::FORWARD, delta);
+			break;
+		case PlayerAction::Right:
+			mpCamera->ProcessKeyboard(CamDir::RIGHT, delta);
+			break;
+		case PlayerAction::Left:
+			mpCamera->ProcessKeyboard(CamDir::LEFT, delta);
+			break;
+		case PlayerAction::Backward:
+			mpCamera->ProcessKeyboard(CamDir::BACKWARD, delta);
+			break;
+		}
+
+		direction = popStackSafely(mWalkingActionDirections);
+	}
+}
+
 void Player::processPlayerState() {
 	switch(getPlayerState()) {
 	case PlayerState::Walking:
 		invokeWalking();
+		break;
+	case PlayerState::Idle:
+		invokeWalking();
+		break;
+	case PlayerState::FlyingDetached:
+		processWalkingDirsToDetachedCamera();
+		break;
 	}
 }

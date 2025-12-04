@@ -25,16 +25,18 @@ public:
 
 	enum class PlayerState : unsigned char {
 		None = 0,
+		Idle,
 		Walking, // any horizontal movement
 		Jumping,
 		Falling,
 		Landing,
-		Flying,
+		Flying, // with character
+		FlyingDetached // no character, just camera
 	};
 
 	Player(std::shared_ptr<Camera> pClientCamera) :
 		mHeight(0.f),
-		mPlayerState(Player::PlayerState::None),
+		mPlayerState(Player::PlayerState::Idle),
 		mHorizontalMovementActions{
 			PlayerAction::Forward, PlayerAction::Backward, PlayerAction::Right, PlayerAction::Left
 		},
@@ -48,7 +50,8 @@ public:
 		mwkpCharacterInstance{},
 		mWalkingActionDirections{},
 		mpCamera(pClientCamera),
-		mLastCharacterPos(0.f)
+		mLastCharacterPos(0.f),
+		mIsFlyingDetached(false)
 	{};
 
 	// Push an action enum to the input stack
@@ -59,18 +62,24 @@ public:
 
 	void invokeWalking();
 
-	void processInput();
-	
-	// Pushes updates to the player camera, which typically is positional updates
-	void processCamera();
-
 	void setCharacter(std::weak_ptr<Instance> pInstance);
 	std::shared_ptr<Instance> getCharacter() const;
 	inline PlayerState getPlayerState() const { return mPlayerState; };
 	inline const auto& getKeybindsToActions() const { return mKeybindsToActions; };
 	inline auto getCamera() { return mpCamera; };
+	void setFlyingDetached(bool bOption);
+
+	void processWalkingDirsToDetachedCamera();
 
 	float mHeight;
+	bool mIsFlyingDetached;
+
+	// Game loop functions vv
+
+	void processInput();
+
+	// Pushes updates to the player camera, which typically is positional updates
+	void processCamera();
 private:
 	PlayerState mPlayerState;
 	const std::set<PlayerAction> mHorizontalMovementActions;
@@ -87,9 +96,9 @@ private:
 
 	inline void setPlayerState(PlayerState newState) { mPlayerState = newState; };
 	inline void pushWalkingActionDirection(PlayerAction action) { mWalkingActionDirections.push(action); };
-	
+
 	template<typename tStackType>
-	tStackType popStackSafely(std::stack<tStackType>& stack);
+	static tStackType popStackSafely(std::stack<tStackType>& stack);
 
 	void processPlayerState();
 };

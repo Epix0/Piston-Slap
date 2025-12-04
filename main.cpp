@@ -2,6 +2,7 @@
 #include "glm/glm.hpp"
 #include <algorithm>
 #include <cstdio>
+#include "World.h"
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -94,12 +95,16 @@ int main(int argsC, char* argsV[]) {
 
 	// At this point, all assets are good for use
 
+	// world
+	auto pWorld = World::getWorld();
+
 	// cam
 	auto pCamera = std::make_shared<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), static_cast<float>(SCR_WIDTH) * .5f, static_cast<float>(SCR_HEIGHT) * .5f);
 
 	// player
 	pPlayer = std::make_shared<Player>(pCamera);
 	pPlayer->mHeight = 2.f;
+	pPlayer->setFlyingDetached(true);
 
 	// instance
 	auto pPlrCharacter = std::make_shared<Instance>("Epix0 Character", pImporter->getModel("character"));
@@ -111,14 +116,64 @@ int main(int argsC, char* argsV[]) {
 		// if an Instance is to be rendered, add it here
 	std::vector<std::weak_ptr<Instance>> instancesToRender = { pPlrCharacter };
 	
-	ShaderProgram shader(Directory::Shaders + "shader.vert", Directory::Shaders + "shader.frag");
-	shader.use();
+//>>	Shaders		<< 
 	
+	// OpaqueLighting
+	ShaderProgram opaqueLightingShader(Directory::Shaders + "OpaqueLighting.vert", Directory::Shaders + "OpaqueLighting.frag");
+
+	// Skybox
+	constexpr float skyboxVertices[] = {          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+
 	while (!glfwWindowShouldClose(window))	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		// world update
+		pWorld->mDeltaTime = deltaTime;
 
 		// this will for now handle player pos updates to the cam
 		grabInput(window, pPlayer);
@@ -126,18 +181,19 @@ int main(int argsC, char* argsV[]) {
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClearColor(.2f, 0, .5f, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		 
 		glm::mat4 perspective = glm::mat4(1.0f);
 		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / std::max(static_cast<float>(SCR_HEIGHT), 1.0f), 0.1f, 200.0f);
 
+		pPlayer->processInput();
 		pPlayer->processCamera();
 
-		shader.use();
-		shader.setMat4("projection", perspective);
-		shader.setMat4("view", pCamera->GetViewMatrix());
-		shader.setVec3("viewPos", pCamera->Position);
+		opaqueLightingShader.use();
+		opaqueLightingShader.setMat4("projection", perspective);
+		opaqueLightingShader.setMat4("view", pCamera->GetViewMatrix());
+		opaqueLightingShader.setVec3("viewPos", pCamera->Position);
 
-		renderInstances(instancesToRender, shader);
+		renderInstances(instancesToRender, opaqueLightingShader);
 
 		GLenum err = glGetError();
 		if (err > 0)
@@ -244,6 +300,7 @@ void loadGLWrangler() {
 
 void configureGL() {
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
