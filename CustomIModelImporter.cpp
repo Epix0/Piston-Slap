@@ -21,7 +21,8 @@ constexpr unsigned int cPostProcFlags =
 aiProcess_JoinIdenticalVertices |
 aiProcess_Triangulate |
 aiProcess_OptimizeMeshes |
-aiProcess_PreTransformVertices;
+aiProcess_PreTransformVertices|
+aiProcess_GenBoundingBoxes;
 
 // Quick note: processVertices() handles the texture coords. This function handles the import of pixel data
 
@@ -29,7 +30,7 @@ void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfM
     auto& material = *scene->mMaterials[sceneMesh.mMaterialIndex];
 
     aiTextureType textureType = aiTextureType_NONE;
-
+    
     if(material.GetTextureCount(aiTextureType_DIFFUSE) > 0)
         textureType = aiTextureType_DIFFUSE;
     else return;
@@ -52,6 +53,7 @@ void CustomModelImporter::processTextures(const aiMesh& sceneMesh, Mesh& meshOfM
 // Currently handles: Positions, Normals, TexCoords, MaterialColors
 void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfModel, const aiScene* scene) const {
     meshOfModel.mVertices.reserve(sceneMesh.mNumVertices);
+    meshOfModel.mBounds = Mesh::AABB(sceneMesh.mAABB.mMin, sceneMesh.mAABB.mMax);
 
     // Vars used for potential nullptr values
     // TexCoords. While the iteration len is mNumVertices, only the first (0) set is used
@@ -134,6 +136,28 @@ void CustomModelImporter::processScene(const aiScene* scene, const std::string& 
     pModel->mMeshes.reserve(scene->mNumMeshes);
 
     processNodeRecursively(scene->mRootNode, *pModel, scene, modelName);
+
+    float minX = 0.f;
+    float minY = 0.f;
+    float minZ = 0.f;
+
+    float maxX = 0.f;
+    float maxY = 0.f;
+    float maxZ = 0.f;
+
+    for(auto& mesh : pModel->mMeshes) {
+        auto& aabb = mesh.mBounds;
+
+        minX = fminf(aabb.mMin.x, minX);
+        minY = fminf(aabb.mMin.y, minY);
+        minZ = fminf(aabb.mMin.z, minZ);
+
+        maxX = fmaxf(aabb.mMax.x, maxX);
+        maxY = fmaxf(aabb.mMax.y, maxY);
+        maxZ = fmaxf(aabb.mMax.z, maxZ);
+   }
+
+    pModel->setBoundingBox(Model::AABB(glm::vec3(minX, minY, minZ), glm::vec3(maxX, maxY, maxZ)));
 }
 
 bool CustomModelImporter::ImportModelFile(const std::filesystem::path& fileSysPath) {
