@@ -19,6 +19,9 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{e6e46137-a38f-4347-a626-b6b7918f268e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Instances">
+      <UniqueIdentifier>{9baa949c-7368-4211-aa08-2c90049f1a62}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -56,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="Instance.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadPart.hpp">
+      <Filter>Source Files\Instances</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
