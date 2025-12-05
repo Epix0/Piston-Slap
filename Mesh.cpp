@@ -54,7 +54,7 @@ void Mesh::draw(ShaderProgram& shader) const {
 	if(mElements.size() > 0)
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mElements.size()), GL_UNSIGNED_INT, ptrZero);
 	else
-		glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mVertices.size()));
 
 	//glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(0);
