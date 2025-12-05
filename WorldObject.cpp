@@ -22,11 +22,11 @@ void WorldObject::setPos(const glm::vec3& newPos) {
 void WorldObject::pushTransformUpdate() {
 	glm::mat4 WorldObject = World::getWorld()->getWorldMatrix();
 
+	WorldObject = glm::scale(WorldObject, mScale);
 	WorldObject = glm::translate(WorldObject, mWorldPos);
 	WorldObject = glm::rotate(WorldObject, mWorldOrientation.x, Unit_Vector_Pitch);
 	WorldObject = glm::rotate(WorldObject, mWorldOrientation.y, Unit_Vector_Yaw);
 	WorldObject = glm::rotate(WorldObject, mWorldOrientation.z, Unit_Vector_Roll);
-	WorldObject = glm::scale(WorldObject, mScale);
 
 	mWorldTransform = WorldObject;
 }
