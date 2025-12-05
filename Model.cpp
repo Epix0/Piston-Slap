@@ -7,3 +7,7 @@ void Model::draw(ShaderProgram& shader) const {
 		mesh.draw(shader);
 	}
 }
+
+void Model::setBoundingBox(const AABB& bounds) {
+	mBounds = bounds;
+}

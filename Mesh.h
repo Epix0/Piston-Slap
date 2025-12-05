@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include <memory>
 #include <vector>
+#include <assimp/vector3.h>
 
 /* Mesh contains the vertex data which makes up its shape and texture placement (texcoords).
 * The current data uses triangulated primitives for its position.
@@ -25,10 +26,18 @@ struct Vertex {
 
 class Mesh {
 public:
-	Mesh() : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{} {};
+	struct AABB {
+		glm::vec3 mMin;
+		glm::vec3 mMax;
+
+		AABB() : mMin{}, mMax{} {};
+		AABB(const aiVector3D& min, const aiVector3D& max) :
+			mMin(min.x, min.y, min.z), mMax(max.x, max.y, max.z) {};
+	};
+	Mesh() : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{}, mBounds{} {};
 
 	// prepForOpenGL() will call itself
-	Mesh(const std::vector<float>& vertices3f) : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{} {
+	Mesh(const std::vector<float>& vertices3f) : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{}, mBounds{} {
 		prepareForGL();
 	};
 
@@ -51,5 +60,7 @@ public:
 	// Only loading diffuse maps sooo one member lol
 	std::shared_ptr<Texture> mTexture;
 	GLuint VAO, VBO, EBO;
+
+	AABB mBounds;
 private:
 };
