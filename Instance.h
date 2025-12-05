@@ -10,9 +10,9 @@
 
 class Instance : public WorldObject {
 public:
-	Instance(const std::string& baseName = "unnamed_instance", std::weak_ptr<Model> pModel = {}) : cmBaseName(baseName), mpModel(pModel) {};
+	Instance(const std::string& baseName, std::weak_ptr<Model> pModel = {}) : cmBaseName(baseName), mpModel(pModel) {};
 
-	inline void draw(ShaderProgram& shader) const {
+	virtual inline void draw(ShaderProgram& shader) const {
 		if(auto pModel = mpModel.lock()) {
 			shader.setMat4("model", getWorldTransform());
 			pModel->draw(shader);
