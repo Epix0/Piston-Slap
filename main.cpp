@@ -87,7 +87,7 @@ int main(int argsC, char* argsV[]) {
 
 	// Import all models from [models/*]. This implicitly imports [textures/*], too
 	auto pImporter = std::make_shared<CustomModelImporter>(); // main() shall be primary owner of this interface so that imported models remain valid
-	//importModels(pImporter);
+	importModels(pImporter);
 
 	// Setup user input
 	std::map<int, Player::PlayerAction> vInputActions;
@@ -108,13 +108,20 @@ int main(int argsC, char* argsV[]) {
 
 	// instance
 	auto pPlrCharacter = std::make_shared<Instance>("Epix0 Character", pImporter->getModel("character"));
+	auto pBox = std::make_shared<Instance>("BOUNDING_BOX", pImporter->getModel("cube"));
+		
+	auto pTargetModel = pImporter->getModel("character");
+	auto& bounds = pTargetModel.lock()->getBounds();
+
+	pBox->setScale(glm::vec3((bounds.mMax - bounds.mMin)) * .5f);
+	pBox->pushTransformUpdate();
 
 	// combining
 	pPlayer->setCharacter(pPlrCharacter);
 	
 	// renderer stuff
 		// if an Instance is to be rendered, add it here
-	std::vector<std::weak_ptr<Instance>> instancesToRender = { pPlrCharacter };
+	std::vector<std::weak_ptr<Instance>> instancesToRender = { pPlrCharacter, pBox };
 
 #ifdef DEBUG
 	// Tex
