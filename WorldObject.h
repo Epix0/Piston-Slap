@@ -28,6 +28,11 @@ public:
 	inline glm::vec3 getScale() const { return mScale; }
 	inline glm::mat4 getWorldTransform() const { return mWorldTransform; };
 
+	// Modifies anchored state
+	void setAnchoredState(bool state);
+
+	inline bool isAnchored() const { return mAnchored; };
+
 	// Technical alias, though not a friendly identifier at times
 	std::string mName;
 private:
@@ -44,8 +49,10 @@ private:
 	// XYZ model scale
 	glm::vec3 mScale;
 
+	// whether the object abides by gravity
+	bool mAnchored;
 protected:
-	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f) {}
+	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f), mAnchored(false) {}
 	~WorldObject() = default;
 };
 

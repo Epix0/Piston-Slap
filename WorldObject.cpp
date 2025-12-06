@@ -8,33 +8,52 @@ const glm::vec3 Unit_Vector_Yaw = glm::vec3(0, 1.0f, 0);
 const glm::vec3 Unit_Vector_Roll = glm::vec3(0, 0, 1.0f);
 
 void WorldObject::setScale(float scalar) {
+	mShouldComputeTransform = true;
 	mScale = glm::vec3(scalar);
 }
 
 void WorldObject::setScale(const glm::vec3& scale) {
+	mShouldComputeTransform = true;
 	mScale = scale;
 }
 
 void WorldObject::setPos(const glm::vec3& newPos) {
-	mWorldPos = newPos;
+	mShouldComputeTransform = true;
+	mPos = newPos;
 }
 
-void WorldObject::pushTransformUpdate() {
+void WorldObject::computeTransform() {
 	glm::mat4 WorldObject = World::getWorld()->getWorldMatrix();
 
 	WorldObject = glm::scale(WorldObject, mScale);
-	WorldObject = glm::translate(WorldObject, mWorldPos);
-	WorldObject = glm::rotate(WorldObject, mWorldOrientation.x, Unit_Vector_Pitch);
-	WorldObject = glm::rotate(WorldObject, mWorldOrientation.y, Unit_Vector_Yaw);
-	WorldObject = glm::rotate(WorldObject, mWorldOrientation.z, Unit_Vector_Roll);
+	WorldObject = glm::translate(WorldObject, mPos);
+	WorldObject = glm::rotate(WorldObject, mOrientation.x, Unit_Vector_Pitch);
+	WorldObject = glm::rotate(WorldObject, mOrientation.y, Unit_Vector_Yaw);
+	WorldObject = glm::rotate(WorldObject, mOrientation.z, Unit_Vector_Roll);
 
-	mWorldTransform = WorldObject;
+	mTransform = WorldObject;
 }
 
 void WorldObject::setOrientationDeg(glm::vec3 newOrientation) {
-	mWorldOrientation = glm::vec3(glm::radians(newOrientation));
+	mShouldComputeTransform = true;
+	mOrientation = glm::vec3(glm::radians(newOrientation));
 }
 
 void WorldObject::setOrientationRad(glm::vec3 newOrientation) {
-	mWorldOrientation = newOrientation;
+	mShouldComputeTransform = true;
+	mOrientation = newOrientation;
+}
+
+inline glm::mat4 WorldObject::getWorldTransform() {
+	if(mShouldComputeTransform) {
+		mShouldComputeTransform = false;
+		computeTransform();
+	}
+
+	return mTransform;
+}
+
+// Responsible for adding and removing objects from gravity stepping
+void WorldObject::setAnchoredState(bool state) {
+	mAnchored = state;
 }
