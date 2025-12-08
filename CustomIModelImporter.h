@@ -10,15 +10,21 @@
 
 class CustomModelImporter {
 public:
-	std::map<std::string, std::shared_ptr<Model>> mImportedModels;
-
-	CustomModelImporter() : mImportedModels{} {};
+	static CustomModelImporter& get() {
+		static CustomModelImporter v;
+		return v;
+	}
 
 	bool ImportModelFile(const std::filesystem::path& fileSysPath);
 
 	std::weak_ptr<Model> getModel(const std::string& modelName);
 
+	std::map<std::string, std::shared_ptr<Model>> mImportedModels;
+
+	CustomModelImporter(const CustomModelImporter&) = delete;
+	CustomModelImporter& operator=(const CustomModelImporter&) = delete;
 private:
+	CustomModelImporter() : mImportedModels{} {};
 
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
 
