@@ -114,8 +114,15 @@
       <AdditionalDependencies>$(ProjectDir)libraries\*;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /s /e $(ProjectDir)\dependencies\* $(OutputPath)</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
+    <CopyFileToFolders>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CopyFileToFolders>
+    <PreBuildEvent>
+      <Command>xcopy /y /s /e $(ProjectDir)\dependencies\* $(OutputPath)</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -141,8 +148,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CollisionSolver.cpp" />
     <ClCompile Include="CustomIModelImporter.cpp" />
     <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="InstanceFactory.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -157,12 +166,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="CollisionSolver.h" />
     <ClInclude Include="CustomIModelImporter.h" />
     <ClInclude Include="Instance.h" />
+    <ClInclude Include="InstanceFactory.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="ShaderProgram.h" />
+    <ClInclude Include="Character.hpp" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="World.h" />
     <ClInclude Include="WorldObject.h" />
