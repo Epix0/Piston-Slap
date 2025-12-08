@@ -10,14 +10,20 @@
 
 class Instance : public WorldObject {
 public:
-	Instance(const std::string& baseName, std::weak_ptr<Model> pModel = {}) : cmBaseName(baseName), mpModel(pModel) {};
+	virtual ~Instance() = default;
 
-	virtual inline void draw(ShaderProgram& shader) const {
+	virtual inline void draw(ShaderProgram& shader) {
 		if(auto pModel = mpModel.lock()) {
-			shader.setMat4("model", getWorldTransform());
+			shader.setMat4("model", getTransform());
 			pModel->draw(shader);
 		}
 	};
+
+	virtual std::unique_ptr<Instance> clone() const = 0;
+
+	inline std::shared_ptr<Model> getModel() const {
+		return mpModel.lock();
+	}
 private:
 	// The reference points to a target element from CustomImporter.mImportedModels
 	std::weak_ptr<Model> mpModel;
