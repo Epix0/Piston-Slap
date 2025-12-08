@@ -11,10 +11,6 @@ public:
 
 	void setPos(const glm::vec3& newPos);
 
-	// Updates mWorldTransform of model's position, scale, and rotation.
-	// Intended to be called at the end of all transform-related updates.
-	void pushTransformUpdate();
-
 	// @newOrientation is in Euler angles DEGREES
 	// Ensure to call updateMatrix() to finalize this update
 	void setOrientationDeg(glm::vec3 newOrientation);
@@ -23,10 +19,10 @@ public:
 	// Ensure to call updateMatrix() to finalize this update
 	void setOrientationRad(glm::vec3 newOrientation);
 
-	inline glm::vec3 getPos() const { return mWorldPos; }
-	inline glm::vec3 getOrientation() const { return mWorldOrientation; }
+	inline glm::vec3 getPos() const { return mPos; }
+	inline glm::vec3 getOrientation() const { return mOrientation; }
 	inline glm::vec3 getScale() const { return mScale; }
-	inline glm::mat4 getWorldTransform() const { return mWorldTransform; };
+	glm::mat4 getTransform();
 
 	// Modifies anchored state
 	void setAnchoredState(bool state);
@@ -36,23 +32,28 @@ public:
 	// Technical alias, though not a friendly identifier at times
 	std::string mName;
 private:
-	// A matrix with the World identity comprised of Model's scale, position, and rotation.
-// Written to when updateMatrix() is called
-	glm::mat4 mWorldTransform;
+	// Updates mTransform of model's position, scale, and rotation.
+	// Called when mShouldComputeTransform is true during getTransform()
+	void computeTransform();
+
+	// Final transform
+	glm::mat4 mTransform;
 
 	// XYZ placement relative to world
-	glm::vec3 mWorldPos;
+	glm::vec3 mPos;
 
 	// Euler angles in radians
-	glm::vec3 mWorldOrientation;
+	glm::vec3 mOrientation;
 
-	// XYZ model scale
+	// XYZ model scales
 	glm::vec3 mScale;
 
 	// whether the object abides by gravity
 	bool mAnchored;
+
+	bool mShouldComputeTransform;
 protected:
-	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mWorldTransform(1.0f), mWorldPos(0), mWorldOrientation(0), mScale(1.0f), mAnchored(false) {}
+	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mTransform(1.0f), mPos(0), mOrientation(0), mScale(1.0f), mAnchored(false), mShouldComputeTransform(true) {}
 	~WorldObject() = default;
 };
 

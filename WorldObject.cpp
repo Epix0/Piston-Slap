@@ -25,8 +25,8 @@ void WorldObject::setPos(const glm::vec3& newPos) {
 void WorldObject::computeTransform() {
 	glm::mat4 WorldObject = World::getWorld()->getWorldMatrix();
 
-	WorldObject = glm::scale(WorldObject, mScale);
 	WorldObject = glm::translate(WorldObject, mPos);
+	WorldObject = glm::scale(WorldObject, mScale);
 	WorldObject = glm::rotate(WorldObject, mOrientation.x, Unit_Vector_Pitch);
 	WorldObject = glm::rotate(WorldObject, mOrientation.y, Unit_Vector_Yaw);
 	WorldObject = glm::rotate(WorldObject, mOrientation.z, Unit_Vector_Roll);
@@ -44,7 +44,7 @@ void WorldObject::setOrientationRad(glm::vec3 newOrientation) {
 	mOrientation = newOrientation;
 }
 
-inline glm::mat4 WorldObject::getWorldTransform() {
+glm::mat4 WorldObject::getTransform() {
 	if(mShouldComputeTransform) {
 		mShouldComputeTransform = false;
 		computeTransform();
