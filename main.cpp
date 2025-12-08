@@ -1,16 +1,20 @@
-#include <windows.h>
+#include <iostream>
 #include "glm/glm.hpp"
 #include <algorithm>
 #include <cstdio>
 #include "World.h"
 #include <cstdlib>
-#include <iostream>
 #include <string>
 #include <stb/stb_image.h>
 #include <filesystem>
 #include <map>
 #include <memory>
 #include "Instance.h"
+#include "InstanceFactory.h"
+
+// Instance Derived
+#include "QuadPart.hpp"
+#include "Character.hpp"
 
 // something fishy going on when trying to load "character" model?
 
@@ -30,6 +34,7 @@ extern "C" {
 #include <memory>
 #include "Model.h"
 #include "Player.h"
+#include "CollisionSolver.h"
 
 // app settings
 int SCR_WIDTH = 800;
@@ -63,11 +68,15 @@ static void loadGLWrangler();
 static void configureGL();
 static void configureVendor();
 static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
+
+// Pre-App ready, post calls run
+
 // @rInputsMap will be populated
 static void setupUserInput(std::map<int, Player::PlayerAction>& rInputsMap);
 void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer);
-//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void renderInstances(const std::vector<std::weak_ptr<Instance>>& instances, ShaderProgram& shader);
+// Registers derived Instances with InstanceFactory. The desired Instances will be within this def
+void registerInstances();
 
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
@@ -93,7 +102,11 @@ int main(int argsC, char* argsV[]) {
 	std::map<int, Player::PlayerAction> vInputActions;
 	setupUserInput(vInputActions);
 
-	// At this point, all assets are good for use
+	//***		At this point, all assets are good for use		***//
+
+	// Instances register
+	auto& pInstanceFactory = InstanceFactory::get();
+	registerInstances();
 
 	// world
 	auto pWorld = World::getWorld();
@@ -107,26 +120,27 @@ int main(int argsC, char* argsV[]) {
 	pPlayer->setFlyingDetached(true);
 
 	// instance
-	auto pPlrCharacter = std::make_shared<Instance>("Epix0 Character", pImporter->getModel("character"));
-	auto pBox = std::make_shared<Instance>("BOUNDING_BOX", pImporter->getModel("cube"));
-		
-	auto pTargetModel = pImporter->getModel("character");
-	auto& bounds = pTargetModel.lock()->getBounds();
-
-	pBox->setScale(glm::vec3((bounds.mMax - bounds.mMin)) * .5f);
-	pBox->pushTransformUpdate();
-
-	// combining
-	pPlayer->setCharacter(pPlrCharacter);
+	std::string cName = "Quad";
+	auto pTempInstance = pInstanceFactory.cloneTemplate<QuadPart>(cName);
 	
+	std::cout << pTempInstance->mName << "\n";
+	
+	// collision solver
+	auto pCollisionSolver = std::make_unique<CollisionSolver>();
+
+	//auto pTargetModel = pImporter->getModel("character");
+	//auto& bounds = pTargetModel.lock()->getBounds();
+	//pBox->setScale(glm::vec3((bounds.mMax - bounds.mMin)) * .5f);
+
+
 	// renderer stuff
 		// if an Instance is to be rendered, add it here
-	std::vector<std::weak_ptr<Instance>> instancesToRender = { pPlrCharacter, pBox };
+	std::vector<std::weak_ptr<Instance>> instancesToRender = {};
 
-#ifdef DEBUG
+#ifdef DEBUG // this bullshit's the skybox. Make this more neat before moving to Release plox
 	// Tex
 	auto cubemapTex = std::make_shared<Texture>(path("textures/skybox/"), GL_TEXTURE_CUBE_MAP);
-
+	
 	// Skybox Pos Vertices
 	const float skyboxVertices[] = {
 		-1.0f,  1.0f, -1.0f,
@@ -215,9 +229,16 @@ int main(int argsC, char* argsV[]) {
 		opaqueLightingShader.setMat4("view", pCamera->GetViewMatrix());
 		opaqueLightingShader.setVec3("viewPos", pCamera->Position);
 
+		// manually moving box
+		
+
 		renderInstances(instancesToRender, opaqueLightingShader);
 
+		// Need a proper function to retrieve vertex positions transformed by Instance
+		// After, need a proper method of finding the edge normal for 3D space
+
 #ifdef DEBUG
+
 		// draw skybox as last
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
@@ -301,6 +322,16 @@ void renderInstances(const std::vector<std::weak_ptr<Instance>>& instances, Shad
 	}
 }
 
+void registerInstances() {
+	InstanceFactory& factory = InstanceFactory::get();
+
+	// || QUAD ||
+	factory.registerTemplate<QuadPart>("Quad");
+
+	// || CHARACTER ||
+	factory.registerTemplate<Character>("Character");
+}
+
 GLFWmonitor* getMonitor() {
 	return glfwGetPrimaryMonitor();
 }
@@ -354,7 +385,7 @@ void importModels(std::shared_ptr<CustomModelImporter> pImporter) {
 		if(!modelDirEntry.is_directory())
 			continue;
 		
-		// TODO: create a blacklist of typical side-effect files that should not be imported but have to stay with the main model file
+		// TODO: clone a blacklist of typical side-effect files that should not be imported but have to stay with the main model file
 		for(auto& subModelDirEntry : std::filesystem::directory_iterator(modelDirEntry.path())) {
 			if(subModelDirEntry.path().extension() == ".bin")
 				continue;
