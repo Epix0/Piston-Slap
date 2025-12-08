@@ -62,14 +62,12 @@ void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfM
 
     for (unsigned int vertexIndex = 0; vertexIndex < sceneMesh.mNumVertices; ++vertexIndex)
     {
-        Vertex vertex;
+        Mesh::Vertex vertex;
         auto& positionVertex = sceneMesh.mVertices[vertexIndex];
         auto& normal = sceneMesh.mNormals[vertexIndex];
 
         vertex.Position = glm::vec3(positionVertex.x, positionVertex.y, positionVertex.z);
         vertex.Normal = glm::vec3(normal.x, normal.y, normal.z);
-
-        // TexCoords and Colors may not exist. Guard clauses are set
 
         // TexCoords
         if (ptrTexCoordsArray) {
@@ -87,7 +85,6 @@ void CustomModelImporter::processVertices(const aiMesh& sceneMesh, Mesh& meshOfM
         material->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
         vertex.Color = glm::vec3(aiColor.r, aiColor.g, aiColor.b);
 
-        // DONE with Vertex
         meshOfModel.mVertices.push_back(vertex);
     }
 }
