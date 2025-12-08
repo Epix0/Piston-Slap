@@ -13,19 +13,19 @@
 * Uses: Texture
 */
 
-struct Vertex {
-	glm::vec3 Position;
-	glm::vec3 Normal;
-	glm::vec2 TexCoords;
-	glm::vec3 Color;
-	Vertex() : Position(0), Normal(0), TexCoords(0), Color(0) {};
-	Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec3& texcoords, const glm::vec3& col) :
-		Position(pos), Normal(norm), TexCoords(texcoords), Color(col)
-	{}
-};
-
 class Mesh {
 public:
+	struct Vertex {
+		glm::vec3 Position;
+		glm::vec3 Normal;
+		glm::vec2 TexCoords;
+		glm::vec3 Color;
+		Vertex() : Position(0), Normal(0), TexCoords(0), Color(0) {};
+		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec3& texcoords, const glm::vec3& col) :
+			Position(pos), Normal(norm), TexCoords(texcoords), Color(col)
+		{}
+	};
+
 	struct AABB {
 		glm::vec3 mMin;
 		glm::vec3 mMax;
@@ -33,6 +33,9 @@ public:
 		AABB() : mMin{}, mMax{} {};
 		AABB(const aiVector3D& min, const aiVector3D& max) :
 			mMin(min.x, min.y, min.z), mMax(max.x, max.y, max.z) {};
+		AABB(const glm::vec3& min, const glm::vec3& max) : 
+			mMin(min), mMax(max) {
+		};
 	};
 	Mesh() : VAO(0), VBO(0), EBO(0), mVertices{}, mElements{}, mTexture{}, mBounds{} {};
 
