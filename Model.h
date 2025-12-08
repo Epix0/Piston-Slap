@@ -32,13 +32,14 @@ public:
 	inline const AABB& getBounds() const { return mBounds; };
 
 	inline size_t getMeshCount() const { return mMeshes.size(); };
+	
+	std::vector<Mesh> mMeshes;
 private:
 	AABB mBounds;
 
 	void setBoundingBox(const AABB& bounds);
 
 	// Model's Meshes
-	std::vector<Mesh> mMeshes;
 
 
 };
