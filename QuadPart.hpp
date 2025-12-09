@@ -1,5 +1,4 @@
 #include "Instance.h"
-#include <string>
 #include <memory>
 
 class QuadPart : public Instance {
