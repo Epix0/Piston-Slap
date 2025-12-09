@@ -7,8 +7,6 @@ public:
 	QuadPart(const QuadPart&) = default;
 
 	std::unique_ptr<Instance> clone() const override {
-		return std::make_unique<QuadPart>();
+		return std::make_unique<QuadPart>(*this);
 	}
-private:
-
 };

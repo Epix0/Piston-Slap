@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include <type_traits>
+#include <iostream>
 
 using std::shared_ptr;
 class InstanceFactory {
@@ -25,7 +26,7 @@ public:
 	void registerTemplate(std::string key, std::unique_ptr<instanceDerivedT>&& pRT);
 
 	template<typename instanceDerivedT>
-	std::unique_ptr<instanceDerivedT> cloneTemplate(const std::string& key);
+	std::shared_ptr<instanceDerivedT> cloneTemplate(const std::string& key);
 
 	InstanceFactory(const InstanceFactory&) = delete;
 	InstanceFactory& operator=(const InstanceFactory&) = delete;
@@ -48,9 +49,9 @@ inline void InstanceFactory::registerTemplate(std::string key, std::unique_ptr<i
 }
 
 template<typename instanceDerivedT>
-inline std::unique_ptr<instanceDerivedT> InstanceFactory::cloneTemplate(const std::string& key) {
+inline std::shared_ptr<instanceDerivedT> InstanceFactory::cloneTemplate(const std::string& key) {
 	if(auto search = mTemplateCloneCallbacks.find(key); search != mTemplateCloneCallbacks.end()) {
-		return std::unique_ptr<instanceDerivedT>(dynamic_cast<instanceDerivedT*>(search->second->clone().release()));
+		return std::shared_ptr<instanceDerivedT>(dynamic_cast<instanceDerivedT*>(search->second->clone().release()));
 	}
 	std::cout << "Could not locate register Instance template [" << key << "]\n";
 	return nullptr;
