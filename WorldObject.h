@@ -28,9 +28,6 @@ public:
 	void setAnchoredState(bool state);
 
 	inline bool isAnchored() const { return mAnchored; };
-
-	// Technical alias, though not a friendly identifier at times
-	std::string mName;
 private:
 	// Updates mTransform of model's position, scale, and rotation.
 	// Called when mShouldComputeTransform is true during getTransform()
@@ -53,7 +50,7 @@ private:
 
 	bool mShouldComputeTransform;
 protected:
-	WorldObject(const std::string& objectName="Unnamed_WorldObject") : mName(objectName), mTransform(1.0f), mPos(0), mOrientation(0), mScale(1.0f), mAnchored(false), mShouldComputeTransform(true) {}
+	WorldObject() : mTransform(1.0f), mPos(0), mOrientation(0), mScale(1.0f), mAnchored(false), mShouldComputeTransform(true) {}
 	~WorldObject() = default;
 };
 
