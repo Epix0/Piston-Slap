@@ -129,7 +129,7 @@ void CustomModelImporter::processNodeRecursively(const aiNode* node, Model& mode
 
 void CustomModelImporter::processScene(const aiScene* scene, const std::string& modelName) {
     auto pModel = std::make_shared<Model>();
-    mImportedModels.insert({ modelName, pModel });
+    mImportedModels[modelName] = pModel;
     pModel->mMeshes.reserve(scene->mNumMeshes);
 
     processNodeRecursively(scene->mRootNode, *pModel, scene, modelName);
@@ -196,7 +196,11 @@ std::weak_ptr<Model> CustomModelImporter::getModel(const std::string& modelName)
     if(search != mImportedModels.end())
         return search->second;
     else {
-        std::cout << "[" << modelName << "] was not found.\n";
+        std::cout << "CustomModelImporter::getModel [" << modelName << "] was not found.\n";
         return mImportedModels["unnamed_map" + std::to_string(mImportedModels.size())];
     }
+}
+
+std::weak_ptr<Model> CustomModelImporter::getModel(CustomModelImporter::NativeModelNames eName) {
+    return getModel(modelEnumToString(eName));
 }
