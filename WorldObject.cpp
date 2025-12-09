@@ -17,9 +17,9 @@ void WorldObject::setScale(const glm::vec3& scale) {
 	mScale = scale;
 }
 
-void WorldObject::setPos(const glm::vec3& newPos) {
+void WorldObject::setPos(glm::vec3 newPos) {
 	mShouldComputeTransform = true;
-	mPos = newPos;
+	mPos = std::move(newPos);
 }
 
 void WorldObject::computeTransform() {
@@ -32,6 +32,14 @@ void WorldObject::computeTransform() {
 	WorldObject = glm::rotate(WorldObject, mOrientation.z, Unit_Vector_Roll);
 
 	mTransform = WorldObject;
+}
+
+void WorldObject::setVelocity(glm::vec3 newVelocity) {
+	mVelocity = std::move(newVelocity);
+}
+
+glm::vec3 WorldObject::getVelocity() const {
+	return mVelocity;
 }
 
 void WorldObject::setOrientationDeg(glm::vec3 newOrientation) {

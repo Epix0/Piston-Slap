@@ -35,6 +35,7 @@ extern "C" {
 #include "Model.h"
 #include "Player.h"
 #include "CollisionSolver.h"
+#include <vector>
 
 // app settings
 int SCR_WIDTH = 800;
@@ -50,33 +51,55 @@ const struct Directory {
 // TODO: better client-launch setting. Global "pPlayer" feels wrong
 //		PS -- this is here to gain scope to a camera during mouse callback. Get rid of this, then refactor mouse callback
 std::shared_ptr<Player> pPlayer = nullptr;
+std::shared_ptr<Camera> pCamera = nullptr;
+bool SpacebearPressed = false;
 
-// timing
+//			Containers
+
+std::vector<std::shared_ptr<Instance>> sessionInstances;
+
+// Renderer stuff. If an Instance is to be rendered, add it here
+std::vector<std::weak_ptr<Instance>> instancesToRender = {};
+
+// Physics
+std::vector<std::weak_ptr<Instance>> instancesToProcPhysics = {};
+constexpr float CGravity_Strength = 0.04f;
+
+//			/Containers
+
+// Model stuff
+auto& pImporter = CustomModelImporter::get();
+
+// Timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 float totalTime = 0.f;
 
 // /GLOBAL
 
-static GLFWwindow* createWindow();
+//	******* GLFW *******
+
+GLFWwindow* createWindow();
 GLFWmonitor* getMonitor();
-// GLFW unique signature
 void GLFW_mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
+//	******* GLFW *******
+
 void mainMouseCallback(float xpos, float ypos, std::shared_ptr<Camera> pCamera);
-static void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor);
-static void loadGLWrangler();
-static void configureGL();
-static void configureVendor();
-static void importModels(std::shared_ptr<CustomModelImporter> pImporter);
-
-// Pre-App ready, post calls run
-
+void congifureWindow(GLFWwindow* window, GLFWmonitor* monitor);
+void loadGLWrangler();
+void configureGL();
+void configureVendor();
+void importModels();
 // @rInputsMap will be populated
 static void setupUserInput(std::map<int, Player::PlayerAction>& rInputsMap);
 void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer);
 void renderInstances(const std::vector<std::weak_ptr<Instance>>& instances, ShaderProgram& shader);
 // Registers derived Instances with InstanceFactory. The desired Instances will be within this def
 void registerInstances();
+// Main physics proc func. This will definitely change later
+void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances);
+template<typename instanceT> void addInstanceToWorld(std::string name); // I think type traits can help with having to specify template everytime
 
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
@@ -95,8 +118,7 @@ int main(int argsC, char* argsV[]) {
 	configureVendor();
 
 	// Import all models from [models/*]. This implicitly imports [textures/*], too
-	auto pImporter = std::make_shared<CustomModelImporter>(); // main() shall be primary owner of this interface so that imported models remain valid
-	importModels(pImporter);
+	importModels();
 
 	// Setup user input
 	std::map<int, Player::PlayerAction> vInputActions;
@@ -107,36 +129,34 @@ int main(int argsC, char* argsV[]) {
 	// Instances register
 	auto& pInstanceFactory = InstanceFactory::get();
 	registerInstances();
+	
+
+	//*** Instances may now be used *** //
+
+	auto pBase = pInstanceFactory.cloneTemplate<QuadPart>("crate");
+	if(pBase) {
+		pBase->setScale(glm::vec3(50.f, .5f, 50.f));
+		pBase->setPos(glm::vec3(0, -4.f, 0));
+		instancesToRender.push_back(pBase);
+	}
 
 	// world
 	auto pWorld = World::getWorld();
 
 	// cam
-	auto pCamera = std::make_shared<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), static_cast<float>(SCR_WIDTH) * .5f, static_cast<float>(SCR_HEIGHT) * .5f);
+	pCamera = std::make_shared<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), static_cast<float>(SCR_WIDTH) * .5f, static_cast<float>(SCR_HEIGHT) * .5f);
 
 	// player
 	pPlayer = std::make_shared<Player>(pCamera);
 	pPlayer->mHeight = 2.f;
 	pPlayer->setFlyingDetached(true);
 
-	// instance
-	std::string cName = "Quad";
-	auto pTempInstance = pInstanceFactory.cloneTemplate<QuadPart>(cName);
-	
-	std::cout << pTempInstance->mName << "\n";
-	
 	// collision solver
 	auto pCollisionSolver = std::make_unique<CollisionSolver>();
 
 	//auto pTargetModel = pImporter->getModel("character");
 	//auto& bounds = pTargetModel.lock()->getBounds();
 	//pBox->setScale(glm::vec3((bounds.mMax - bounds.mMin)) * .5f);
-
-
-	// renderer stuff
-		// if an Instance is to be rendered, add it here
-	std::vector<std::weak_ptr<Instance>> instancesToRender = {};
-
 #ifdef DEBUG // this bullshit's the skybox. Make this more neat before moving to Release plox
 	// Tex
 	auto cubemapTex = std::make_shared<Texture>(path("textures/skybox/"), GL_TEXTURE_CUBE_MAP);
@@ -201,7 +221,8 @@ int main(int argsC, char* argsV[]) {
 	// OpaqueLighting
 	ShaderProgram opaqueLightingShader(Directory::Shaders + "OpaqueLighting.vert", Directory::Shaders + "OpaqueLighting.frag");
 	ShaderProgram skyboxShader(Directory::Shaders + "Skybox.vert", Directory::Shaders + "Skybox.frag");
-
+	
+	srand(0);
 	while (!glfwWindowShouldClose(window))	{
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -229,11 +250,8 @@ int main(int argsC, char* argsV[]) {
 		opaqueLightingShader.setMat4("view", pCamera->GetViewMatrix());
 		opaqueLightingShader.setVec3("viewPos", pCamera->Position);
 
-		// manually moving box
-		
-
 		renderInstances(instancesToRender, opaqueLightingShader);
-
+		processPhysics(instancesToProcPhysics);
 		// Need a proper function to retrieve vertex positions transformed by Instance
 		// After, need a proper method of finding the edge normal for 3D space
 
@@ -303,6 +321,13 @@ void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer) {
 		return;
 	}
 
+	auto spaceState = (glfwGetKey(window, GLFW_KEY_SPACE));
+	if(spaceState == GLFW_PRESS && !SpacebearPressed) {
+		addInstanceToWorld<QuadPart>("crate");
+		SpacebearPressed = true;
+	} else if(spaceState == GLFW_RELEASE)
+		SpacebearPressed = false;
+
 	for(auto& [ key, action] : pPlayer->getKeybindsToActions()) {
 		if(glfwGetKey(window, key) == GLFW_PRESS)
 			pPlayer->pushAction(action);
@@ -324,12 +349,52 @@ void renderInstances(const std::vector<std::weak_ptr<Instance>>& instances, Shad
 
 void registerInstances() {
 	InstanceFactory& factory = InstanceFactory::get();
+	auto& importer = CustomModelImporter::get();
 
 	// || QUAD ||
-	factory.registerTemplate<QuadPart>("Quad");
+	auto part = std::make_unique<QuadPart>();
+	part->setModel(importer.getModel(CustomModelImporter::NativeModelNames::Cube));
+	part->setFriendlyName("part");
+	factory.registerTemplate<QuadPart>("part", std::move(part));
 
 	// || CHARACTER ||
-	factory.registerTemplate<Character>("Character");
+	factory.registerTemplate<Character>("character");
+
+	// || CRATE ||
+	auto crate = std::make_unique<QuadPart>();
+	crate->setModel(pImporter.getModel("crate"));
+	factory.registerTemplate<QuadPart>("crate", std::move(crate));
+}
+
+void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
+	for(auto& wkpInstance : instances) {
+		if(auto pInstance = wkpInstance.lock()) {
+			auto currVel = pInstance->getVelocity();
+			auto currPos = pInstance->getPos();
+
+			currVel += glm::vec3(0.f, -CGravity_Strength * deltaTime, 0.f);
+	
+			if(currPos.y <= -3.f) {
+				currPos.y = -2.5f;
+				currVel = glm::abs(currVel) * .7f;
+			}
+
+			glm::vec3 final = pInstance->getPos() + currVel;
+
+			pInstance->setVelocity(currVel);
+			pInstance->setPos(std::move(final));
+		}
+	}
+}
+
+template<typename instanceT> void addInstanceToWorld(std::string name) {
+	auto& factory = InstanceFactory::get();
+	std::shared_ptr<Instance> pInstance = factory.cloneTemplate<instanceT>(std::move(name));
+	pInstance->setScale(static_cast<float>(rand() % 10) * .01f);
+	pInstance->setPos(pCamera->Position);
+	sessionInstances.push_back(pInstance);
+	instancesToRender.push_back(pInstance);
+	instancesToProcPhysics.push_back(pInstance);
 }
 
 GLFWmonitor* getMonitor() {
@@ -380,7 +445,8 @@ void configureVendor() {
 	stbi_set_flip_vertically_on_load(true);
 }
 
-void importModels(std::shared_ptr<CustomModelImporter> pImporter) {
+void importModels() {
+	auto& pImporter = CustomModelImporter::get();
 	for(auto& modelDirEntry : std::filesystem::directory_iterator(Directory::Models)) {
 		if(!modelDirEntry.is_directory())
 			continue;
@@ -389,7 +455,7 @@ void importModels(std::shared_ptr<CustomModelImporter> pImporter) {
 		for(auto& subModelDirEntry : std::filesystem::directory_iterator(modelDirEntry.path())) {
 			if(subModelDirEntry.path().extension() == ".bin")
 				continue;
-			pImporter->ImportModelFile(subModelDirEntry.path());
+			pImporter.ImportModelFile(subModelDirEntry.path());
 		}
 	}
 }

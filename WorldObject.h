@@ -9,7 +9,7 @@ public:
 
 	void setScale(const glm::vec3& scale);
 
-	void setPos(const glm::vec3& newPos);
+	void setPos(glm::vec3 newPos);
 
 	// @newOrientation is in Euler angles DEGREES
 	// Ensure to call updateMatrix() to finalize this update
@@ -28,6 +28,10 @@ public:
 	void setAnchoredState(bool state);
 
 	inline bool isAnchored() const { return mAnchored; };
+	
+	void setVelocity(glm::vec3 newVelocity);
+
+	glm::vec3 getVelocity() const;
 private:
 	// Updates mTransform of model's position, scale, and rotation.
 	// Called when mShouldComputeTransform is true during getTransform()
@@ -49,8 +53,10 @@ private:
 	bool mAnchored;
 
 	bool mShouldComputeTransform;
+
+	glm::vec3 mVelocity;
 protected:
-	WorldObject() : mTransform(1.0f), mPos(0), mOrientation(0), mScale(1.0f), mAnchored(false), mShouldComputeTransform(true) {}
+	WorldObject() : mTransform(1.0f), mPos(0), mOrientation(0), mScale(1.0f), mAnchored(false), mShouldComputeTransform(true), mVelocity(0.f) {}
 	~WorldObject() = default;
 };
 
