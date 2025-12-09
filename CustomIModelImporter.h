@@ -10,6 +10,11 @@
 
 class CustomModelImporter {
 public:
+	enum class NativeModelNames : char {
+		Cube,
+		AlphaCharacter,
+	};
+
 	static CustomModelImporter& get() {
 		static CustomModelImporter v;
 		return v;
@@ -19,12 +24,25 @@ public:
 
 	std::weak_ptr<Model> getModel(const std::string& modelName);
 
+	std::weak_ptr<Model> getModel(CustomModelImporter::NativeModelNames eName);
+
 	std::map<std::string, std::shared_ptr<Model>> mImportedModels;
 
 	CustomModelImporter(const CustomModelImporter&) = delete;
 	CustomModelImporter& operator=(const CustomModelImporter&) = delete;
 private:
 	CustomModelImporter() : mImportedModels{} {};
+
+	static constexpr std::string modelEnumToString(CustomModelImporter::NativeModelNames eName) {
+		switch(eName) {
+		case CustomModelImporter::NativeModelNames::Cube:
+			return "cube";
+		case CustomModelImporter::NativeModelNames::AlphaCharacter:
+			return "character";
+		default:
+			return "unnamed";
+		}
+	};
 
 	// The arrangement of process*() args should be as follows: primary scene object; Mesh OR Model; optionally, the scene ptr itself
 
