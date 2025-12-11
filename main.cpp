@@ -135,9 +135,10 @@ int main(int argsC, char* argsV[]) {
 
 	auto pBase = pInstanceFactory.cloneTemplate<QuadPart>("crate");
 	if(pBase) {
-		pBase->setScale(glm::vec3(50.f, .5f, 50.f));
 		pBase->setPos(glm::vec3(0, -4.f, 0));
+		pBase->setScale(glm::vec3(50.f, .5f, 50.f));
 		instancesToRender.push_back(pBase);
+		sessionInstances.push_back(pBase);
 	}
 
 	// world
@@ -219,7 +220,7 @@ int main(int argsC, char* argsV[]) {
 //>>	Shaders		<< 
 	
 	// OpaqueLighting
-	ShaderProgram opaqueLightingShader(Directory::Shaders + "OpaqueLighting.vert", Directory::Shaders + "OpaqueLighting.frag");
+	ShaderProgram opaqueLightingShader(Directory::Shaders + "OpaqueLighting.vert", Directory::Shaders + "JustAmbient.frag");
 	ShaderProgram skyboxShader(Directory::Shaders + "Skybox.vert", Directory::Shaders + "Skybox.frag");
 	
 	srand(0);
@@ -368,21 +369,45 @@ void registerInstances() {
 
 void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 	for(auto& wkpInstance : instances) {
-		if(auto pInstance = wkpInstance.lock()) {
+		if(auto pInstance = wkpInstance.lock(); !pInstance->getAnchoredState()) {
 			auto currVel = pInstance->getVelocity();
 			auto currPos = pInstance->getPos();
 
 			currVel += glm::vec3(0.f, -CGravity_Strength * deltaTime, 0.f);
-	
-			if(currPos.y <= -3.f) {
-				currPos.y = -2.5f;
-				currVel = glm::abs(currVel) * .7f;
+			pInstance->setPos(currVel + currPos);
+
+			// TODO: skip Instances that lack a model, otherwise this GOOBs
+			// Collision test
+			if(sessionInstances.size() > 1) {
+				for(auto pInstanceToTest : sessionInstances) {
+					if(pInstanceToTest == pInstance)
+						continue;
+
+					// local
+					auto [firstMinL, firstMaxL] = pInstance->getModel()->getBounds();
+					auto [secondMinL, secondMaxL] = pInstanceToTest->getModel()->getBounds();
+
+					// convert to world
+					auto firstMinW = pInstance->translateLocalVector(std::move(firstMinL));
+					auto firstMaxW = pInstance->translateLocalVector(std::move(firstMaxL));
+					auto secondMinW = pInstanceToTest->translateLocalVector(std::move(secondMinL));
+					auto secondMaxW = pInstanceToTest->translateLocalVector(std::move(secondMaxL));
+					
+					bool overlap =
+						firstMinW.x <= secondMaxW.x && firstMaxW.x >= secondMinW.x &&
+						firstMinW.y <= secondMaxW.y && firstMaxW.y >= secondMinW.y &&
+						firstMinW.z <= secondMaxW.z && firstMaxW.z >= secondMinW.z;
+
+					if(overlap) {
+						pInstance->setPos(currPos);
+						currVel = glm::vec3(0.f);
+						pInstance->setAnchoredState(true);
+						break;
+					}
+				}
 			}
 
-			glm::vec3 final = pInstance->getPos() + currVel;
-
 			pInstance->setVelocity(currVel);
-			pInstance->setPos(std::move(final));
 		}
 	}
 }
