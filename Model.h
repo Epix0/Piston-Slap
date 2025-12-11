@@ -29,7 +29,7 @@ public:
 	// View, Projection and other uniforms should be set prior to this call.
 	void draw(ShaderProgram& shader) const;
 	
-	inline const AABB& getBounds() const { return mBounds; };
+	inline const AABB getBounds() const { return mBounds; };
 
 	inline size_t getMeshCount() const { return mMeshes.size(); };
 	
