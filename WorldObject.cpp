@@ -43,7 +43,7 @@ glm::vec3 WorldObject::getVelocity() const {
 }
 
 glm::vec3 WorldObject::translateLocalVector(glm::vec3 local) {
-	return glm::vec3(getTransform() * glm::vec4(local, 1.f));
+	return glm::vec3(getTransform() * glm::vec4(std::move(local), 1.f));
 }
 
 void WorldObject::setOrientationDeg(glm::vec3 newOrientation) {
