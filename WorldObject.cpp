@@ -38,6 +38,10 @@ void WorldObject::setVelocity(glm::vec3 newVelocity) {
 	mVelocity = std::move(newVelocity);
 }
 
+void WorldObject::setMatrix(glm::mat4 matrix) {
+	mTransform = std::move(matrix);
+}
+
 glm::vec3 WorldObject::getVelocity() const {
 	return mVelocity;
 }

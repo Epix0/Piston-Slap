@@ -33,6 +33,8 @@ public:
 	
 	void setVelocity(glm::vec3 newVelocity);
 
+	void setMatrix(glm::mat4 matrix);
+
 	glm::vec3 getVelocity() const;
 	
 	// Accepts a local vector and translates it by this world's transform
