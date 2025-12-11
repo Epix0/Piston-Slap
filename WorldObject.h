@@ -27,6 +27,8 @@ public:
 	// Modifies anchored state
 	void setAnchoredState(bool state);
 
+	bool getAnchoredState() const;
+
 	inline bool isAnchored() const { return mAnchored; };
 	
 	void setVelocity(glm::vec3 newVelocity);

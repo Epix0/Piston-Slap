@@ -23,15 +23,15 @@ void WorldObject::setPos(glm::vec3 newPos) {
 }
 
 void WorldObject::computeTransform() {
-	glm::mat4 WorldObject = World::getWorld()->getWorldMatrix();
+	glm::mat4 worldInstance = World::getWorld()->getWorldMatrix();
 
-	WorldObject = glm::translate(WorldObject, mPos);
-	WorldObject = glm::scale(WorldObject, mScale);
-	WorldObject = glm::rotate(WorldObject, mOrientation.x, Unit_Vector_Pitch);
-	WorldObject = glm::rotate(WorldObject, mOrientation.y, Unit_Vector_Yaw);
-	WorldObject = glm::rotate(WorldObject, mOrientation.z, Unit_Vector_Roll);
+	worldInstance = glm::translate(worldInstance, mPos);
+	worldInstance = glm::rotate(worldInstance, mOrientation.x, Unit_Vector_Pitch);
+	worldInstance = glm::rotate(worldInstance, mOrientation.y, Unit_Vector_Yaw);
+	worldInstance = glm::rotate(worldInstance, mOrientation.z, Unit_Vector_Roll);
+	worldInstance = glm::scale(worldInstance, mScale);
 
-	mTransform = WorldObject;
+	mTransform = worldInstance;
 }
 
 void WorldObject::setVelocity(glm::vec3 newVelocity) {
@@ -64,4 +64,8 @@ glm::mat4 WorldObject::getTransform() {
 // Responsible for adding and removing objects from gravity stepping
 void WorldObject::setAnchoredState(bool state) {
 	mAnchored = state;
+}
+
+bool WorldObject::getAnchoredState() const {
+	return mAnchored;
 }
