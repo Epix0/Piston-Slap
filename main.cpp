@@ -101,6 +101,45 @@ void registerInstances();
 void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances);
 template<typename instanceT> void addInstanceToWorld(std::string name); // I think type traits can help with having to specify template everytime
 
+// GPT
+
+inline std::pair<glm::vec3, glm::vec3>
+computeWorldAABB(const glm::mat4& M, const glm::vec3& localMin, const glm::vec3& localMax) {
+	// local center and half extents
+	glm::vec3 localCenter = (localMin + localMax) * 0.5f;
+	glm::vec3 halfSize = (localMax - localMin) * 0.5f;
+
+	// world center
+	glm::vec3 center = glm::vec3(M * glm::vec4(localCenter, 1.0f));
+
+	// orientation / scale basis vectors
+	glm::vec3 axisX = glm::vec3(M[0]);  // Right (scaled + rotated)
+	glm::vec3 axisY = glm::vec3(M[1]);  // Up
+	glm::vec3 axisZ = glm::vec3(M[2]);  // Forward
+
+	// Abs dot products give projected half-size onto world axes
+	float ex = std::abs(axisX.x) * halfSize.x +
+		std::abs(axisY.x) * halfSize.y +
+		std::abs(axisZ.x) * halfSize.z;
+
+	float ey = std::abs(axisX.y) * halfSize.x +
+		std::abs(axisY.y) * halfSize.y +
+		std::abs(axisZ.y) * halfSize.z;
+
+	float ez = std::abs(axisX.z) * halfSize.x +
+		std::abs(axisY.z) * halfSize.y +
+		std::abs(axisZ.z) * halfSize.z;
+
+	glm::vec3 worldMin = center - glm::vec3(ex, ey, ez);
+	glm::vec3 worldMax = center + glm::vec3(ex, ey, ez);
+
+	return { worldMin, worldMax };
+}
+
+
+
+// GPT
+
 int main(int argsC, char* argsV[]) {
 	GLFWwindow* window = createWindow();
 	GLFWmonitor* monitor = getMonitor();
@@ -380,19 +419,26 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 			// Collision test
 			if(sessionInstances.size() > 1) {
 				for(auto pInstanceToTest : sessionInstances) {
+
 					if(pInstanceToTest == pInstance)
 						continue;
 
-					// local
+					// Get models & bounds
 					auto [firstMinL, firstMaxL] = pInstance->getModel()->getBounds();
 					auto [secondMinL, secondMaxL] = pInstanceToTest->getModel()->getBounds();
 
-					// convert to world
-					auto firstMinW = pInstance->translateLocalVector(std::move(firstMinL));
-					auto firstMaxW = pInstance->translateLocalVector(std::move(firstMaxL));
-					auto secondMinW = pInstanceToTest->translateLocalVector(std::move(secondMinL));
-					auto secondMaxW = pInstanceToTest->translateLocalVector(std::move(secondMaxL));
-					
+					// Get transform matrices
+					glm::mat4 M1 = pInstance->getTransform();
+					glm::mat4 M2 = pInstanceToTest->getTransform();
+
+					// Compute world-space AABBs using Method 2
+					auto [firstMinW, firstMaxW] =
+						computeWorldAABB(M1, firstMinL, firstMaxL);
+
+					auto [secondMinW, secondMaxW] =
+						computeWorldAABB(M2, secondMinL, secondMaxL);
+
+					// Now do the canonical AABB overlap test
 					bool overlap =
 						firstMinW.x <= secondMaxW.x && firstMaxW.x >= secondMinW.x &&
 						firstMinW.y <= secondMaxW.y && firstMaxW.y >= secondMinW.y &&
