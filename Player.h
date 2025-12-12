@@ -46,13 +46,15 @@ public:
 			{GLFW_KEY_A, PlayerAction::Left},
 			{GLFW_KEY_D, PlayerAction::Right},
 			{GLFW_KEY_S, PlayerAction::Backward},
+			{GLFW_KEY_F, PlayerAction::Jump},
 		},
 		mwkpCharacterInstance{},
 		mWalkingActionDirections{},
 		mpCamera(pClientCamera),
 		mLastCharacterPos(0.f),
 		mIsFlyingDetached(false),
-		mPlayerMoveDirection(0.f)
+		mPlayerMoveDirection(0.f),
+		mPlayerWantsToJump(false)
 	{};
 
 	// Push an action enum to the input stack
@@ -61,7 +63,7 @@ public:
 	// Evaluate whether @vAction is considered to trigger walking state
 	bool isThisActionWalking(Player::PlayerAction vAction) const;
 
-	void invokeWalking();
+	void invokeWalking(Player::PlayerAction action);
 
 	void setCharacter(std::weak_ptr<Instance> pInstance);
 	std::shared_ptr<Instance> getCharacter() const;
@@ -73,6 +75,7 @@ public:
 	void processWalkingDirsToDetachedCamera();
 
 	float mHeight;
+	bool mPlayerWantsToJump;
 	bool mIsFlyingDetached;
 	glm::vec3 mPlayerMoveDirection;
 	// Game loop functions vv

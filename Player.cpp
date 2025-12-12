@@ -12,19 +12,31 @@ bool Player::isThisActionWalking (Player::PlayerAction vAction) const {
 	return mHorizontalMovementActions.contains(vAction);
 }
 
-void Player::invokeWalking() {
-	std::cout << "invoking walk\n";
-	mPlayerMoveDirection = glm::vec3(getCamera()->Front.x, 0.f, getCamera()->Front.z);
+void Player::invokeWalking(Player::PlayerAction action) {
+
 }
 
 void Player::processInput() {
 	auto action = popStackSafely(mPlayerActionsStack);
+	auto cam = getCamera();
 	while(action != PlayerAction::None) {
 		if(isThisActionWalking(action)) {
-			pushWalkingActionDirection(action);
+			if(action == Player::PlayerAction::Forward)
+				mPlayerMoveDirection += cam->Front;
+			if(action == Player::PlayerAction::Backward)
+				mPlayerMoveDirection -= cam->Front;
+			if(action == Player::PlayerAction::Left)
+				mPlayerMoveDirection -= cam->Right;
+			if(action == Player::PlayerAction::Right)
+				mPlayerMoveDirection += cam->Right;
 
+			mPlayerMoveDirection.y = 0.f;
 		}
+			if(action == Player::PlayerAction::Jump) {
+				mPlayerWantsToJump = true;		
+			}
 		
+
 		processPlayerState();
 		action = popStackSafely(mPlayerActionsStack);
 	}
@@ -89,10 +101,10 @@ void Player::processWalkingDirsToDetachedCamera() {
 void Player::processPlayerState() {
 	switch(getPlayerState()) {
 	case PlayerState::Walking:
-		invokeWalking();
+		/*invokeWalking();*/
 		break;
 	case PlayerState::Idle:
-		invokeWalking();
+
 		break;
 	case PlayerState::FlyingDetached:
 		processWalkingDirsToDetachedCamera();

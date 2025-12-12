@@ -151,8 +151,6 @@ computeWorldAABB(const glm::mat4& M, const glm::vec3& localMin, const glm::vec3&
 	return { worldMin, worldMax };
 }
 
-
-
 // GPT
 
 int main(int argsC, char* argsV[]) {
@@ -204,13 +202,16 @@ int main(int argsC, char* argsV[]) {
 
 	// player
 	pPlayer = std::make_shared<Player>(pCamera);
-	pPlayer->mHeight = .5f;
 	pPlayer->setFlyingDetached(false);
 	auto pCharacter = pInstanceFactory.cloneTemplate<QuadPart>("part");
+	pCharacter->setScale(glm::vec3 (.1f, 0.5f, .1f));
 	pPlayer->setCharacter(pCharacter);
 	instancesToProcPhysics.push_back(pCharacter);
 	sessionInstances.push_back(pCharacter);
-	instancesToRender.push_back(pCharacter);
+	pCharacter->setFriendlyName("Epix0");
+	pCharacter.reset();
+	pCharacter = nullptr;
+	//instancesToRender.push_back(pCharacter);
 
 	// collision solver
 	auto pCollisionSolver = std::make_unique<CollisionSolver>();
@@ -389,9 +390,16 @@ void grabInput(GLFWwindow* window, Player::PlayerPtr pPlayer) {
 	} else if(spaceState == GLFW_RELEASE)
 		SpacebearPressed = false;
 
-	for(auto& [ key, action] : pPlayer->getKeybindsToActions()) {
-		if(glfwGetKey(window, key) == GLFW_PRESS)
+	for(auto& [key, action] : pPlayer->getKeybindsToActions()) {
+		auto state = glfwGetKey(window, key);
+		if(state == GLFW_PRESS || state == GLFW_REPEAT)
 			pPlayer->pushAction(action);
+		else {
+			if(action == Player::PlayerAction::Forward || action == Player::PlayerAction::Backward)
+				pPlayer->mPlayerMoveDirection.z = 0.f;
+			if(action == Player::PlayerAction::Left || action == Player::PlayerAction::Right)
+				pPlayer->mPlayerMoveDirection.x = 0.f;
+		}
 	}
 
 	//float yBob = sinf(lastFrame * 15.f) * 0.0008f;
@@ -441,12 +449,29 @@ void registerInstances() {
 
 void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 	for(auto& wkpInstance : instances) {
-		if(auto pInstance = wkpInstance.lock(); !pInstance->getAnchoredState()) {
+		if(auto pInstance = wkpInstance.lock()) {
+			if(pInstance->getAnchoredState())
+				continue;
+
 			auto currVel = pInstance->getVelocity();
 			auto currPos = pInstance->getPos();
 
-			currVel += glm::vec3(0.f, -CGravity_Strength * deltaTime, 0.f);
-			pInstance->setPos(currVel + currPos + glm::vec3(.02f * deltaTime, 0, 0));
+			glm::vec3 velOne = glm::vec3(0.f);
+			velOne.y += currVel.y + -CGravity_Strength * deltaTime;
+
+			if(pInstance == pPlayer->getCharacter()) {
+				velOne += pPlayer->mPlayerMoveDirection * 3.f * deltaTime;
+				if(pPlayer->mPlayerWantsToJump && velOne.y <=1.f){
+					velOne.y += 0.25f * deltaTime;
+					pPlayer->mPlayerWantsToJump = false;
+				}
+			}
+
+			if(currPos.y >= 50.f) {
+				currPos.y = 49.f;
+				velOne.y *= -1.f;
+			}
+			pInstance->setPos(currPos + velOne);
 
 			/*TODO: 
 				- skip Instances that lack a model, otherwise this GOOBs
@@ -456,15 +481,20 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 
 			// Collision test
 			if(sessionInstances.size() > 1) {
-				for(auto pInstanceToTest : sessionInstances) {
+				for(int i = 0; i < sessionInstances.size(); ++i) {
+					auto pInstanceToTest = sessionInstances.at(i);
 
-					if(pInstanceToTest == pInstance)
+					if(pInstanceToTest == pInstance) {
+						if(currPos.y <= -50.f) {
+							std::cout << "Destroying... " << pInstance->getFriendlyName() << "\n";
+							sessionInstances.erase(sessionInstances.begin() + i);
+						}
 						continue;
+					}
 
 					auto [firstMinL, firstMaxL] = pInstance->getModel()->getBounds();
 					auto [secondMinL, secondMaxL] = pInstanceToTest->getModel()->getBounds();
-
-			
+								
 					glm::mat4 M1 = pInstance->getTransform();
 					glm::mat4 M2 = pInstanceToTest->getTransform();
 
@@ -507,7 +537,7 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 							normal = -normal;
 
 						currPos += normal * minOverlap;
-						currVel -= glm::dot(currVel, normal) * normal;
+						velOne -= glm::dot(velOne, normal) * normal;
 
 						pInstance->setPos(currPos);
 
@@ -516,7 +546,7 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 				}
 			}
 
-			pInstance->setVelocity(currVel);
+			pInstance->setVelocity(velOne);
 		}
 	}
 }
@@ -600,6 +630,6 @@ void setupUserInput(std::map<int, Player::PlayerAction>& rInputsMap) {
 	rInputsMap[GLFW_KEY_S] = Action::Backward;
 	rInputsMap[GLFW_KEY_A] = Action::Left;
 	rInputsMap[GLFW_KEY_D] = Action::Right;
-	rInputsMap[GLFW_KEY_SPACE] = Action::Jump;
+	rInputsMap[GLFW_KEY_F] = Action::Jump;
 	rInputsMap[GLFW_KEY_LEFT_CONTROL] = Action::Crouch;
 }
