@@ -13,10 +13,8 @@ bool Player::isThisActionWalking (Player::PlayerAction vAction) const {
 }
 
 void Player::invokeWalking() {
-	//switch(popStackSafely(mWalkingActionDirections)) {
-	//case PlayerAction::Forward:
-
-	//}
+	std::cout << "invoking walk\n";
+	mPlayerMoveDirection = glm::vec3(getCamera()->Front.x, 0.f, getCamera()->Front.z);
 }
 
 void Player::processInput() {

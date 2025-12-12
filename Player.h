@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include "Camera.hpp"
 
-class Player : public WorldObject {
+class Player {
 public:
 	typedef std::shared_ptr<Player> PlayerPtr;
 
@@ -51,7 +51,8 @@ public:
 		mWalkingActionDirections{},
 		mpCamera(pClientCamera),
 		mLastCharacterPos(0.f),
-		mIsFlyingDetached(false)
+		mIsFlyingDetached(false),
+		mPlayerMoveDirection(0.f)
 	{};
 
 	// Push an action enum to the input stack
@@ -73,7 +74,7 @@ public:
 
 	float mHeight;
 	bool mIsFlyingDetached;
-
+	glm::vec3 mPlayerMoveDirection;
 	// Game loop functions vv
 
 	void processInput();

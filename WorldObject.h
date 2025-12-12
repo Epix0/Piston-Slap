@@ -39,10 +39,10 @@ public:
 	
 	// Accepts a local vector and translates it by this world's transform
 	glm::vec3 translateLocalVector(glm::vec3 local);
-private:
 	// Updates mTransform of model's position, scale, and rotation.
 	// Called when mShouldComputeTransform is true during getTransform()
 	void computeTransform();
+private:
 
 	// Final transform
 	glm::mat4 mTransform;

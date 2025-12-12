@@ -1,5 +1,6 @@
-#include <iostream>
+﻿#include <iostream>
 #include "glm/glm.hpp"
+#include <glm/gtx/euler_angles.hpp>
 #include <algorithm>
 #include <cstdio>
 #include "World.h"
@@ -11,6 +12,20 @@
 #include <memory>
 #include "Instance.h"
 #include "InstanceFactory.h"
+
+// formula to viewmodel mathing
+#if false
+glm::mat4 armModel = glm::mat4(1.0f);
+armModel = glm::translate(armModel, pCamera->Position);
+armModel = glm::rotate(armModel, glm::radians(-pCamera->Yaw - 90.f), glm::vec3(0, 1, 0));
+armModel = glm::rotate(armModel, glm::radians(pCamera->Pitch), glm::vec3(1, 0, 0));
+
+// Viewmodel local offset
+armModel = glm::translate(armModel, glm::vec3(0.3f, -0.3f, -0.5f));
+armModel = glm::scale(armModel, glm::vec3(0.3f));
+
+pArm->setMatrix(armModel);
+#endif
 
 // Instance Derived
 #include "QuadPart.hpp"
@@ -167,29 +182,35 @@ int main(int argsC, char* argsV[]) {
 
 	// Instances register
 	auto& pInstanceFactory = InstanceFactory::get();
-	registerInstances();
-	
+	registerInstances();	
 
 	//*** Instances may now be used *** //
 
-	auto pBase = pInstanceFactory.cloneTemplate<QuadPart>("crate");
-	if(pBase) {
-		pBase->setPos(glm::vec3(0, -4.f, 0));
-		pBase->setScale(glm::vec3(50.f, .5f, 50.f));
-		instancesToRender.push_back(pBase);
-		sessionInstances.push_back(pBase);
+	{
+		auto pBase = pInstanceFactory.cloneTemplate<QuadPart>("crate");
+		if(pBase) {
+			pBase->setPos(glm::vec3(0, -4.f, 0));
+			pBase->setScale(glm::vec3(50.f, .5f, 50.f));
+			instancesToRender.push_back(pBase);
+			sessionInstances.push_back(pBase);
+		}
 	}
 
 	// world
 	auto pWorld = World::getWorld();
 
 	// cam
-	pCamera = std::make_shared<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), static_cast<float>(SCR_WIDTH) * .5f, static_cast<float>(SCR_HEIGHT) * .5f);
+	pCamera = std::make_shared<Camera>(glm::vec3(0.0f, 0.0f, 0.0f), static_cast<float>(SCR_WIDTH) * .5f, static_cast<float>(SCR_HEIGHT) * .5f);
 
 	// player
 	pPlayer = std::make_shared<Player>(pCamera);
-	pPlayer->mHeight = 2.f;
-	pPlayer->setFlyingDetached(true);
+	pPlayer->mHeight = .5f;
+	pPlayer->setFlyingDetached(false);
+	auto pCharacter = pInstanceFactory.cloneTemplate<QuadPart>("part");
+	pPlayer->setCharacter(pCharacter);
+	instancesToProcPhysics.push_back(pCharacter);
+	sessionInstances.push_back(pCharacter);
+	instancesToRender.push_back(pCharacter);
 
 	// collision solver
 	auto pCollisionSolver = std::make_unique<CollisionSolver>();
@@ -202,7 +223,7 @@ int main(int argsC, char* argsV[]) {
 	auto cubemapTex = std::make_shared<Texture>(path("textures/skybox/"), GL_TEXTURE_CUBE_MAP);
 	
 	// Skybox Pos Vertices
-	const float skyboxVertices[] = {
+	constexpr float skyboxVertices[] = {
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f,
@@ -280,7 +301,7 @@ int main(int argsC, char* argsV[]) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		 
 		glm::mat4 perspective = glm::mat4(1.0f);
-		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / std::max(static_cast<float>(SCR_HEIGHT), 1.0f), 0.1f, 200.0f);
+		perspective = glm::perspective(glm::radians(90.0f), static_cast<float>(SCR_WIDTH) / std::max(static_cast<float>(SCR_HEIGHT), 1.0f), 0.001f, 200.0f);
 
 		pPlayer->processInput();
 		pPlayer->processCamera();
@@ -289,7 +310,7 @@ int main(int argsC, char* argsV[]) {
 		opaqueLightingShader.setMat4("projection", perspective);
 		opaqueLightingShader.setMat4("view", pCamera->GetViewMatrix());
 		opaqueLightingShader.setVec3("viewPos", pCamera->Position);
-
+		
 		renderInstances(instancesToRender, opaqueLightingShader);
 		processPhysics(instancesToProcPhysics);
 		// Need a proper function to retrieve vertex positions transformed by Instance
@@ -391,19 +412,31 @@ void registerInstances() {
 	InstanceFactory& factory = InstanceFactory::get();
 	auto& importer = CustomModelImporter::get();
 
-	// || QUAD ||
-	auto part = std::make_unique<QuadPart>();
-	part->setModel(importer.getModel(CustomModelImporter::NativeModelNames::Cube));
-	part->setFriendlyName("part");
-	factory.registerTemplate<QuadPart>("part", std::move(part));
+	// || PART ||
+	{
+		auto part = std::make_unique<QuadPart>();
+		part->setModel(importer.getModel(CustomModelImporter::NativeModelNames::Cube));
+		part->setFriendlyName("part");
+		part->setScale(.25f);
+		factory.registerTemplate<QuadPart>("part", std::move(part));
+	}
 
 	// || CHARACTER ||
 	factory.registerTemplate<Character>("character");
 
 	// || CRATE ||
-	auto crate = std::make_unique<QuadPart>();
-	crate->setModel(pImporter.getModel("crate"));
-	factory.registerTemplate<QuadPart>("crate", std::move(crate));
+	{
+		auto crate = std::make_unique<QuadPart>();
+		crate->setModel(pImporter.getModel("crate"));
+		factory.registerTemplate<QuadPart>("crate", std::move(crate));
+	}
+	// || ARM ||
+	{
+		auto arm = std::make_unique<QuadPart>();
+		arm->setModel(importer.getModel("arm"));
+		arm->setScale(.9f);
+		factory.registerTemplate<QuadPart>("arm", std::move(arm));
+	}
 }
 
 void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
@@ -413,9 +446,14 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 			auto currPos = pInstance->getPos();
 
 			currVel += glm::vec3(0.f, -CGravity_Strength * deltaTime, 0.f);
-			pInstance->setPos(currVel + currPos);
+			pInstance->setPos(currVel + currPos + glm::vec3(.02f * deltaTime, 0, 0));
 
-			// TODO: skip Instances that lack a model, otherwise this GOOBs
+			/*TODO: 
+				- skip Instances that lack a model, otherwise this GOOBs
+				- implement a sleep state where objects at resting position but not anchored can be skipped during gravity comp.
+					maybe a collision delta check?
+			*/ 
+
 			// Collision test
 			if(sessionInstances.size() > 1) {
 				for(auto pInstanceToTest : sessionInstances) {
@@ -423,31 +461,56 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 					if(pInstanceToTest == pInstance)
 						continue;
 
-					// Get models & bounds
 					auto [firstMinL, firstMaxL] = pInstance->getModel()->getBounds();
 					auto [secondMinL, secondMaxL] = pInstanceToTest->getModel()->getBounds();
 
-					// Get transform matrices
+			
 					glm::mat4 M1 = pInstance->getTransform();
 					glm::mat4 M2 = pInstanceToTest->getTransform();
 
-					// Compute world-space AABBs using Method 2
 					auto [firstMinW, firstMaxW] =
 						computeWorldAABB(M1, firstMinL, firstMaxL);
 
 					auto [secondMinW, secondMaxW] =
 						computeWorldAABB(M2, secondMinL, secondMaxL);
-
-					// Now do the canonical AABB overlap test
+			
 					bool overlap =
 						firstMinW.x <= secondMaxW.x && firstMaxW.x >= secondMinW.x &&
 						firstMinW.y <= secondMaxW.y && firstMaxW.y >= secondMinW.y &&
 						firstMinW.z <= secondMaxW.z && firstMaxW.z >= secondMinW.z;
 
 					if(overlap) {
+						float overlapX = std::min(firstMaxW.x, secondMaxW.x) -
+							std::max(firstMinW.x, secondMinW.x);
+						float overlapY = std::min(firstMaxW.y, secondMaxW.y) -
+							std::max(firstMinW.y, secondMinW.y);
+						float overlapZ = std::min(firstMaxW.z, secondMaxW.z) -
+							std::max(firstMinW.z, secondMinW.z);
+											
+						float minOverlap = overlapX;
+						glm::vec3 normal(1, 0, 0);
+
+						if(overlapY < minOverlap) {
+							minOverlap = overlapY;
+							normal = glm::vec3(0, 1, 0);
+						}
+
+						if(overlapZ < minOverlap) {
+							minOverlap = overlapZ;
+							normal = glm::vec3(0, 0, 1);
+						}
+
+						glm::vec3 centerA = (firstMinW + firstMaxW) * 0.5f;
+						glm::vec3 centerB = (secondMinW + secondMaxW) * 0.5f;
+
+						if(glm::dot(centerA - centerB, normal) < 0)
+							normal = -normal;
+
+						currPos += normal * minOverlap;
+						currVel -= glm::dot(currVel, normal) * normal;
+
 						pInstance->setPos(currPos);
-						currVel = glm::vec3(0.f);
-						pInstance->setAnchoredState(true);
+
 						break;
 					}
 				}
@@ -462,7 +525,7 @@ template<typename instanceT> void addInstanceToWorld(std::string name) {
 	auto& factory = InstanceFactory::get();
 	std::shared_ptr<Instance> pInstance = factory.cloneTemplate<instanceT>(std::move(name));
 	pInstance->setScale(static_cast<float>(rand() % 10) * .01f);
-	pInstance->setPos(pCamera->Position);
+	pInstance->setPos(pPlayer->getCharacter()->getPos() - glm::vec3(0, .25f, 0));
 	sessionInstances.push_back(pInstance);
 	instancesToRender.push_back(pInstance);
 	instancesToProcPhysics.push_back(pInstance);
