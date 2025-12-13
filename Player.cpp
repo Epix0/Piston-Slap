@@ -22,13 +22,13 @@ void Player::processInput() {
 	while(action != PlayerAction::None) {
 		if(isThisActionWalking(action)) {
 			if(action == Player::PlayerAction::Forward)
-				mPlayerMoveDirection += cam->Front;
+				mPlayerMoveDirection = cam->Front;
 			if(action == Player::PlayerAction::Backward)
-				mPlayerMoveDirection -= cam->Front;
+				mPlayerMoveDirection = -cam->Front;
 			if(action == Player::PlayerAction::Left)
-				mPlayerMoveDirection -= cam->Right;
+				mPlayerMoveDirection = -cam->Right;
 			if(action == Player::PlayerAction::Right)
-				mPlayerMoveDirection += cam->Right;
+				mPlayerMoveDirection = cam->Right;
 
 			mPlayerMoveDirection.y = 0.f;
 		}

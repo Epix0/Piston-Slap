@@ -203,6 +203,7 @@ int main(int argsC, char* argsV[]) {
 	// player
 	pPlayer = std::make_shared<Player>(pCamera);
 	pPlayer->setFlyingDetached(false);
+	pPlayer->mHeight = -.4f;
 	auto pCharacter = pInstanceFactory.cloneTemplate<QuadPart>("part");
 	pCharacter->setScale(glm::vec3 (.1f, 0.5f, .1f));
 	pPlayer->setCharacter(pCharacter);
@@ -461,8 +462,11 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 
 			if(pInstance == pPlayer->getCharacter()) {
 				velOne += pPlayer->mPlayerMoveDirection * 3.f * deltaTime;
-				if(pPlayer->mPlayerWantsToJump && velOne.y <=1.f){
-					velOne.y += 0.25f * deltaTime;
+				if(pPlayer->mPlayerWantsToJump){
+					if(velOne.y <= 1.f) {
+						velOne.y += 0.25f * deltaTime;
+					}
+
 					pPlayer->mPlayerWantsToJump = false;
 				}
 			}
@@ -552,10 +556,19 @@ void processPhysics(const std::vector<std::weak_ptr<Instance>>& instances) {
 }
 
 template<typename instanceT> void addInstanceToWorld(std::string name) {
+	auto pCharacter = pPlayer->getCharacter();
+	if(!pCharacter) {
+		return;
+	}
+
 	auto& factory = InstanceFactory::get();
 	std::shared_ptr<Instance> pInstance = factory.cloneTemplate<instanceT>(std::move(name));
 	pInstance->setScale(static_cast<float>(rand() % 10) * .01f);
-	pInstance->setPos(pPlayer->getCharacter()->getPos() - glm::vec3(0, .25f, 0));
+	
+	auto pos = pCharacter->getPos();
+	pos.y -= pCharacter->getScale().y *2.f;
+	pos.y -= pInstance->getScale().y*2.f;
+	pInstance->setPos(pos);
 	sessionInstances.push_back(pInstance);
 	instancesToRender.push_back(pInstance);
 	instancesToProcPhysics.push_back(pInstance);
