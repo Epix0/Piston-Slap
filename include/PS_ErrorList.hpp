@@ -1,7 +1,8 @@
 #pragma once
 // HEADER ONLY
 #include <cstdint>
-#include <iostream>
+#include <iosfwd>
+#include <string>
 
 namespace PistonSlap {
     enum class StatusCode : std::uint16_t {
@@ -9,7 +10,7 @@ namespace PistonSlap {
 
         // GLFW
         GLFW_Window_Init_Failed = 1,
-
+        GLFW_MAIN_INIT_FAILED = 2,
         GLFW_RESERVED = 199,
 
         // Vulkan
@@ -21,10 +22,12 @@ namespace PistonSlap {
         // Assimp
         ASSIMP_MODEL_IMPORT_FAILED = 300,
 
-        ASSIMP_RESERVED = 399
+        ASSIMP_RESERVED = 399,
+
     };
     
-    std::ostream& operator<<(std::ostream& os, StatusCode status){
-        return os << status;
+    inline std::ostream& operator<<(std::ostream& os, const StatusCode& status){
+        os << std::to_string(static_cast<std::uint16_t>(status));
+        return os;
     };
 };
